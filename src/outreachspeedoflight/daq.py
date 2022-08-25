@@ -2,11 +2,13 @@ from time import sleep
 
 import socket
 import math
+import json
+import os
+from pathlib import Path
 
 import numpy as np
 
-# Debugging only
-import matplotlib.pyplot as plt
+import logging
 
 class MSO5000Oscilloscope:
 	def __init__(self,ipaddr="10.0.0.196",port=5555):
@@ -65,8 +67,14 @@ class MSO5000Oscilloscope:
 		self.scpiCommand_NoReply(":WAV:FORM ASC")
 
 	def waitTriggerDone(self):
-		while(self.scpiCommand_NoReply(":TRIG:STAT?") != "STOP"):
+		while(self.scpiCommand(":TRIG:STAT?") != "STOP"):
 			pass
+	def isTriggerDone(self):
+		repl = self.scpiCommand(":TRIG:STAT?").strip()
+		if repl == "WAIT":
+			return False
+		else:
+			return True
 
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
@@ -92,11 +100,69 @@ class MSO5000Oscilloscope:
 
 		return np.asarray(data)
 
+class SpeedOfLightDAQ:
+	def __init__(self, queueDAQtoGUI, queueGUItoDAQ, defaultLoglevel = logging.DEBUG):
+		self._queueDAQtoGUI = queueDAQtoGUI
+		self._queueGUItoDAQ = queueGUItoDAQ
 
-if __name__ == "__main__":
-	osci = MSO5000Oscilloscope()
-	data = osci.queryData((1, 2))
+		self._logger = logging.getLogger(__name__)
+		self._logger.addHandler(logging.StreamHandler())
+		self._logger.setLevel(defaultLoglevel)
 
-	for ent in data:
-		plt.plot(data[ent], label = f"Channel {ent}")
-	plt.show()
+		# Read configuration file ...
+		self._cfg = self._readConfigurationFile()
+		if not self._cfg:
+			# We send our termination signal to the main process
+			queueDAQtoGUI.put(None)
+			return
+
+		if "loglevel" in self._cfg:
+			# ToDo
+			pass
+
+		# Read our configuration and open oscilloscope connection
+		if not "osci" in self._cfg:
+			self._logger.error("[DAQ] No oscilloscope connection specified for DAQ")
+		if not ("ip" in self._cfg['osci']):
+			self._logger.error("[DAQ] Missing IP specification for oscilloscope in DAQ configuration")
+
+		osci_ip = self._cfg['osci']['ip']
+
+		# Create Oscilloscope isntance and try to connect ..
+		try:
+			self._osci = MSO5000Oscilloscope(osci_ip)
+		except Exception as e:
+			self._logger.error(f"[DAQ] {e}")
+
+	def run(self):
+		# Run one measurement after each other ...
+		while True:
+			# Depends on configuration if we are running in triggered
+			# or in continuous mode
+			if ("mode" in self._cfg) and (self._cfg["mode"] == "triggered"):
+				self._osci.setTriggerSweep_Single()
+				while not self._osci.isTriggerDone():
+					pass 
+				self._logger.debug("[DAQ] Triggered")
+			else:
+				self._osci.setTriggerSweep_Normal()
+
+			data = self._osci.queryData((1,2))
+			self._queueDAQtoGUI.put(data)
+
+	def _readConfigurationFile(self):
+		cfgPath = os.path.join(Path.home(), ".config/speedoflight/daq.conf")
+		self._logger.debug(f"[DAQ] Trying to load DAQ configuration from {cfgPath}")
+		cfg = None
+
+		try:
+			with open(cfgPath) as cfgFile:
+				cfg = json.load(cfgFile)
+		except FileNotFoundError:
+			self._logger.error(f"[DAQ] Failed to open configuration file {cfgPath}")
+			return False
+		except JSONDecodeError as e:
+			self._logger.error(f"[DAQ] Failed to read configuration file {cfgPath}: {e}")
+			return False
+
+		return cfg
