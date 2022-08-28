@@ -1,5 +1,7 @@
 # Outreach project utility: Speed of light
 
+_Work in progress_
+
 This is the frontend to the _speed of light_ outreach project. This project
 has been developed to measure the speed of light similar to the idea
 that Hippolyte Fizeau developed in 1848. In contrast to his experiment
