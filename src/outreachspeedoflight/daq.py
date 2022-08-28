@@ -1,14 +1,88 @@
 from time import sleep
+from math import exp
 
 import socket
 import math
 import json
 import os
 from pathlib import Path
+import queue
 
 import numpy as np
 
+import random
+
 import logging
+
+class MSO5000Oscilloscope_Simulation:
+	def __init__(self, filename=None, logger = None):
+		self._filename = filename
+		self._logger = logger
+
+	def setChannelEnable(self, channel, enabled):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Channel {channel} set to {enabled}")
+		return
+
+	def setTriggerSweep_Single(self):
+		if self._logger is not None:
+			self._logger.debug("[OSCISIM] Setting trigger mode to single")
+	def setTriggerSweep_Auto(self):
+		if self._logger is not None:
+			self._logger.debug("[OSCISIM] Setting trigger mode to auto")
+	def setTriggerSweep_Normal(self):
+		if self._logger is not None:
+			self._logger.debug("[OSCISIM] Setting trigger mode to normal")
+
+	def setWaveformMode_Normal(self):
+		if self._logger is not None:
+			self._logger.debug("[OSCISIM] Setting waveform mode to normal")
+	def setWaveformMode_Raw(self):
+		if self._logger is not None:
+			self._logger.debug("[OSCISIM] Setting waveform mode to raw")
+	def setWaveformFormat_ASCII(self):
+		if self._logger is not None:
+			self._logger.debug("[OSCISIM] Setting waveform mode to ASCII")
+
+	def waitTriggerDone(self):
+		while not self.isTriggerDone():
+			pass
+
+	def isTriggerDone(self):
+		delay = random.uniform(0.2, 0.9)
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Sleeping {delay} s")
+		sleep(delay)
+		return random.choice([True, False])
+
+	def queryData(self, channel):
+		if isinstance(channel, list) or isinstance(channel, tuple):
+			res = {
+				'payload' : 'data'
+			}
+			for chan in channel:
+				res[chan] = self.queryData(chan)
+			return res
+
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Invalid channel number (1-4 valid)")
+
+		# ToDo: Implement querying data form our file. Currently we fill with random stuff ...
+		data = np.random.uniform(low=0.0, high=1.0, size=(1024,))
+
+		dt = 0
+		if channel == 2:
+			dt = 0.5 + random.uniform(0,2)
+			sampledt = dt / (12 / 1024)
+			self._logger.debug(f"[OSCISIM] Simulated delay is {sampledt}")
+
+		# Trace logistic function
+		for i, arg in enumerate(np.linspace(-6, 6, 1024)):
+			v = 10 / (1 + exp(-(arg - dt)))
+			data[i] = data[i] + v
+
+		return data
+
 
 class MSO5000Oscilloscope:
 	def __init__(self,ipaddr="10.0.0.196",port=5555):
@@ -78,7 +152,9 @@ class MSO5000Oscilloscope:
 
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
-			res = {}
+			res = {
+				'payload' : 'data'
+			}
 			for chan in channel:
 				res[chan] = self.queryData(chan)
 			return res
@@ -126,12 +202,16 @@ class SpeedOfLightDAQ:
 		if not ("ip" in self._cfg['osci']):
 			self._logger.error("[DAQ] Missing IP specification for oscilloscope in DAQ configuration")
 
-		osci_ip = self._cfg['osci']['ip']
+		if ("osci" in self._cfg) and ("ip" in self._cfg['osci']):
+			osci_ip = self._cfg['osci']['ip']
+		else:
+			osci_ip = "10.0.0.196"
 
 		# Create Oscilloscope isntance and try to connect ..
 		try:
 			self._osci = MSO5000Oscilloscope(osci_ip)
 		except Exception as e:
+			self._osci = MSO5000Oscilloscope_Simulation(logger = self._logger)
 			self._logger.error(f"[DAQ] {e}")
 
 	def run(self):
@@ -142,13 +222,26 @@ class SpeedOfLightDAQ:
 			if ("mode" in self._cfg) and (self._cfg["mode"] == "triggered"):
 				self._osci.setTriggerSweep_Single()
 				while not self._osci.isTriggerDone():
-					pass 
+					pass
 				self._logger.debug("[DAQ] Triggered")
 			else:
 				self._osci.setTriggerSweep_Normal()
 
 			data = self._osci.queryData((1,2))
 			self._queueDAQtoGUI.put(data)
+
+			try:
+				newItem = self._queueGUItoDAQ.get(block = False)
+				if newItem is None:
+					self._logger.debug("[DAQ] Got termination notification from GUI, terminating")
+					self._queueGUItoDAQ.task_done()
+					break
+
+				self._queueGUItoDAQ.task_done()
+			except queue.Empty:
+				pass
+
+		self._queueDAQtoGUI.put(None)
 
 	def _readConfigurationFile(self):
 		cfgPath = os.path.join(Path.home(), ".config/speedoflight/daq.conf")
