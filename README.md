@@ -25,3 +25,14 @@ This application:
 * Estimates the speed of light from this correlation function by doing
   a simple peak search
 * Does averaging over the estimated speed of light and visualized this.
+
+## Experimental setup
+
+The experimental setup consists of two basic parts:
+
+* A chopper assembly - where a bicycle is used (or any other kind of chopper)
+* A beamsplitter and photodiode assembly as well as a long beamline
+
+![Chopper assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_chopper.png)
+
+![Beamsplitter and photodiode assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_diodeandcoupling.png)
