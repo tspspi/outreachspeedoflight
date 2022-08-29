@@ -55,6 +55,20 @@ class MSO5000Oscilloscope_Simulation:
 		sleep(delay)
 		return random.choice([True, False])
 
+	def setTimebasePerDivision(self, secondsPerDivision):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting to {secondsPerDivision} s/div")
+	def setTimebaseModeMain(self):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting timebase mode to main")
+
+	def run(self):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Run mode")
+	def stop(self):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Stop mode")
+
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
 			res = {
@@ -140,6 +154,18 @@ class MSO5000Oscilloscope:
 	def setWaveformFormat_ASCII(self):
 		self.scpiCommand_NoReply(":WAV:FORM ASC")
 
+	def setTimebasePerDivision(self, secondsPerDivision):
+		if (secondsPerDivision > 50) or (secondsPerDivision < 5e-9):
+			raise ValueError("Seconds per division has to be in range of 50s to 5 ns")
+		self.scpiCommand_NoReply(f":TIM:SCAL {secondsPerDivision}")
+	def setTimebaseModeMain(self):
+		self.scpiCommand_NoReply(":TIM:MODE MAIN")
+
+	def run(self):
+		self.scpiCommand_NoReply(":RUN")
+	def stop(self):
+		self.scpiCommand_NoReply(":STOP")
+
 	def waitTriggerDone(self):
 		while(self.scpiCommand(":TRIG:STAT?") != "STOP"):
 			pass
@@ -214,8 +240,16 @@ class SpeedOfLightDAQ:
 			self._osci = MSO5000Oscilloscope_Simulation(logger = self._logger)
 			self._logger.error(f"[DAQ] {e}")
 
+		if ("osci" in self._cfg) and ("sperdiv" in self._cfg["osci"]):
+			self._osci.setTimebaseModeMain()
+			self._osci.setTimebasePerDivision(self._cfg["osci"]["sperdiv"])
+
 	def run(self):
 		# Run one measurement after each other ...
+		if not (("mode" in self._cfg) and (self._cfg["mode"] == "triggered")):
+			# Execute run command once when we are not in triggered mode
+			self._osci.run()
+
 		while True:
 			# Depends on configuration if we are running in triggered
 			# or in continuous mode
