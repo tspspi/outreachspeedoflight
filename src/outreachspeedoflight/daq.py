@@ -262,7 +262,10 @@ class SpeedOfLightDAQ:
 				self._osci.setTriggerSweep_Normal()
 
 			data = self._osci.queryData((1,2))
-			self._queueDAQtoGUI.put(data)
+			try:
+				self._queueDAQtoGUI.put(data, block = False)
+			except:
+				self._logger.debug("[DAQ] Dropping measurement due to full queue")
 
 			try:
 				newItem = self._queueGUItoDAQ.get(block = False)
