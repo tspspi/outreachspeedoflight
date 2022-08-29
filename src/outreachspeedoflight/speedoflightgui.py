@@ -158,6 +158,8 @@ class SpeedOfLightGUI:
 			return
 
 		# Normalize
+		msg[1] = msg[1] - np.min(msg[1])
+		msg[2] = msg[2] - np.min(msg[2])
 		msg[1] /= np.max(msg[1])
 		msg[2] /= np.max(msg[2])
 		msg['diff'] = msg[1] - msg[2]
