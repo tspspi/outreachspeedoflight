@@ -38,3 +38,52 @@ The experimental setup consists of two basic parts:
 ![Chopper assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_chopper.png)
 
 ![Beamsplitter and photodiode assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_diodeandcoupling.png)
+
+# Configuration files
+
+## daq.conf
+
+```
+{
+  "osci" : {
+    "ip" : "10.0.0.196",
+    "port" : 5555,
+    "sperdiv" : 20e-9,
+    "trigch" : 1,
+    "triglvl" : 0,
+    "ch1" : {
+      "offset" : 0,
+      "scale" : 10e-3
+    },
+    "ch2" : {
+      "offset" : 0,
+      "scale" : 10e-3
+    }
+  },
+  "loglevel" : "debug",
+  "mode" : "triggered"
+}
+```
+
+* Mode can be ```triggered``` or ```continuous```
+* IP of oscilloscope has to be present
+* Seconds per division, trigger channel, trigger level as well as scale and offset per channel
+  are optional
+
+## gui.conf
+
+```
+{
+        "loglevel" : "debug",
+        "lastsamples" : 64,
+        "averagecount" : 32,
+        "plotsize" : {
+                "x" : 460,
+                "y" : 240
+        },
+        "mainwindowsize" : {
+                "x" : 1300,
+                "y" : 800
+        }
+}
+```

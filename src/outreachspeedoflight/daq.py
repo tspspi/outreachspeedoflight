@@ -55,6 +55,15 @@ class MSO5000Oscilloscope_Simulation:
 		sleep(delay)
 		return random.choice([True, False])
 
+	def setTriggerSource(self, channel):
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Channel for trigger source has to be in range 1 - 4")
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting trigger source to channel {channel}")
+	def setTriggerLevel(self, level):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting trigger level to {level}")
+
 	def setTimebasePerDivision(self, secondsPerDivision):
 		if self._logger is not None:
 			self._logger.debug(f"[OSCISIM] Setting to {secondsPerDivision} s/div")
@@ -68,6 +77,14 @@ class MSO5000Oscilloscope_Simulation:
 	def stop(self):
 		if self._logger is not None:
 			self._logger.debug(f"[OSCISIM] Stop mode")
+
+	def setChannelOffset(self, channel, offset):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting channel offset for channel {channel} to {offset}")
+	def setChannelScale(self, channel, perdivision):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting channel scale for channel {channel} to {perdivision}")
+		
 
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
@@ -175,6 +192,25 @@ class MSO5000Oscilloscope:
 			return False
 		else:
 			return True
+	def setTriggerLevel(self, level):
+		self.scpiCommand_NoReply(f":TRIG:EDGE:LEV {level}")
+
+	def setTriggerSource(self, channel):
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Channel for trigger source has to be in range 1 - 4")
+		self.scpiCommand_NoReply(":TRIG:MODE EDGE")
+		self.scpiCommand_NoReply(f":TRIG:EDGE:SOUR CHAN{channel}")
+
+	def setChannelOffset(self, channel, offset):
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Channel for trigger source has to be in range 1 - 4")
+		self.scpiCommand_NoReply(f":CHAN{channel}:OFFS {offset}")
+	def setChannelScale(self, channel, perdivision):
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Channel has to be in range 1 - 4")
+		if (perdivision < 10e-3) or (perdivision > 100):
+			raise ValueError("Out of range")
+		self.scpiCommand_NoReply(f":CHAN{channel}:SCAL {perdivision}")
 
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
@@ -243,6 +279,24 @@ class SpeedOfLightDAQ:
 		if ("osci" in self._cfg) and ("sperdiv" in self._cfg["osci"]):
 			self._osci.setTimebaseModeMain()
 			self._osci.setTimebasePerDivision(self._cfg["osci"]["sperdiv"])
+
+		if ("osci" in self._cfg) and ("trigch" in self._cfg["osci"]):
+			self._osci.setTriggerSource(self._cfg["osci"]["trigch"])
+			if ("osci" in self._cfg) and ("triglvl" in self._cfg["osci"]):
+				self._osci.setTriggerLevel(self._cfg["osci"]["triglvl"])
+
+		if "osci" in self._cfg:
+			if "ch1" in self._cfg['osci']:
+				if "offset" in self._cfg['osci']['ch1']:
+					self._osci.setChannelOffset(1, self._cfg['osci']['ch1']['offset'])
+				if "scale" in self._cfg['osci']['ch1']:
+					self._osci.setChannelScale(1, self._cfg['osci']['ch1']['scale'])
+			if "ch2" in self._cfg['osci']:
+				if "offset" in self._cfg['osci']['ch2']:
+					self._osci.setChannelOffset(2, self._cfg['osci']['ch2']['offset'])
+				if "scale" in self._cfg['osci']['ch2']:
+					self._osci.setChannelScale(2, self._cfg['osci']['ch2']['scale'])
+
 
 	def run(self):
 		# Run one measurement after each other ...
