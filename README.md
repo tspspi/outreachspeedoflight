@@ -45,23 +45,30 @@ The experimental setup consists of two basic parts:
 
 ```
 {
-  "osci" : {
-    "ip" : "10.0.0.196",
-    "port" : 5555,
-    "sperdiv" : 20e-9,
-    "trigch" : 1,
-    "triglvl" : 0,
-    "ch1" : {
-      "offset" : 0,
-      "scale" : 10e-3
-    },
-    "ch2" : {
-      "offset" : 0,
-      "scale" : 10e-3
-    }
-  },
-  "loglevel" : "debug",
-  "mode" : "triggered"
+	"osci" : {
+		"ip" : "10.0.0.196",
+		"port" : 5555,
+		"sperdiv" : 1e-6,
+		"trigch" : 1,
+		"triglvl" : 0.5,
+		"ch1" : {
+			"offset" : 0,
+			"scale" : 0.5
+		},
+		"ch2" : {
+			"offset" : 0,
+			"scale" : 0.1
+		}
+	},
+	"chopper" : {
+		"diameter" : 68e-2
+	},
+	"path" : {
+		"length" : 100,
+		"n" : 1.4
+	},
+	"loglevel" : "debug",
+	"mode" : "continuous"
 }
 ```
 
@@ -74,16 +81,16 @@ The experimental setup consists of two basic parts:
 
 ```
 {
-        "loglevel" : "debug",
-        "lastsamples" : 64,
-        "averagecount" : 32,
-        "plotsize" : {
-                "x" : 460,
-                "y" : 240
-        },
-        "mainwindowsize" : {
-                "x" : 1300,
-                "y" : 800
-        }
+	"loglevel" : "debug",
+	"lastsamples" : 32,
+	"averagecount" : 16,
+	"plotsize" : {
+		"x" : 460,
+		"y" : 260
+	},
+	"mainwindowsize" : {
+		"x" : 1300,
+		"y" : 800
+	}
 }
 ```
