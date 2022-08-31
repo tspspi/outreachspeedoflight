@@ -71,15 +71,40 @@ class SpeedOfLightGUI:
 		layout = [
 			[
 				sg.Column([
-					[ sg.Text("Captured signal") ],
 					[ sg.Canvas(size=self._plotsize, key='canvRawData') ],
 					[ sg.Canvas(size=self._plotsize, key='canvRawDataDiff') ],
 					[ sg.Canvas(size=self._plotsize, key='canvRawDataCorr') ]
 				]),
 				sg.Column([
-					[ sg.Text("Last measurements") ],
 					[ sg.Canvas(size=self._plotsize, key='canvLastAvg') ],
 					[ sg.Canvas(size=self._plotsize, key='canvLastEstimates') ]
+				]),
+				sg.Column([
+					[ sg.Text("Current speed: ") ],
+					[ sg.Text("Measured delay: ") ],
+					[ sg.Text("Averaged delay: ") ],
+					[ sg.Text("Delay error: ") ],
+					[ sg.Text("Speed of light: ") ],
+					[ sg.Text("Speed of light error: ") ],
+					[ sg.Text("Deviation from real speed: ") ]
+				]),
+				sg.Column([
+					[ sg.Text("000000", key="txtCurV") ],
+					[ sg.Text("000000", key="txtCurDelay") ],
+					[ sg.Text("000000", key="txtAvgDelay") ],
+					[ sg.Text("000000", key="txtErrDelay") ],
+					[ sg.Text("000000", key="txtC") ],
+					[ sg.Text("000000", key="txtCErr") ],
+					[ sg.Text("000000", key="txtDeviation") ]
+				]),
+				sg.Column([
+					[ sg.Text("km/h") ],
+					[ sg.Text("s") ],
+					[ sg.Text("s") ],
+					[ sg.Text("s") ],
+					[ sg.Text("m/s") ],
+					[ sg.Text("m/s") ],
+					[ sg.Text("%") ]
 				])
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
@@ -87,9 +112,9 @@ class SpeedOfLightGUI:
 		self._windowMain = sg.Window("Speed of light", layout, size=self._mainwindowsize, finalize=True)
 
 		self._figures = {
-			'rawData' : self._init_figure('canvRawData', 'Time [s]', 'Signal', 'Captured data (normalized)'),
-			'rawDataDiff' : self._init_figure('canvRawDataDiff', 'Time [s]', 'Signal', 'Difference between channels', legend = False),
-			'rawDataCorr' : self._init_figure('canvRawDataCorr', 'Time [s]', 'Signal', 'Correlation function', legend = False),
+			'rawData' : self._init_figure('canvRawData', 'Time', 'Signal', 'Captured data (normalized)'),
+			'rawDataDiff' : self._init_figure('canvRawDataDiff', 'Time', 'Signal', 'Difference between channels', legend = False),
+			'rawDataCorr' : self._init_figure('canvRawDataCorr', 'Time', 'Signal', 'Correlation function', legend = False),
 			'lastAvg' : self._init_figure('canvLastAvg', 'Measurements', 'Delay', 'Delay between last measurements (averaged)', legend = False),
 			'lastEstimates' : self._init_figure('canvLastEstimates', 'Measurements', 'Delay', 'Last measurements', legend = False)
 		}
@@ -186,9 +211,21 @@ class SpeedOfLightGUI:
 		# Do averaging and error calculation
 		self._lastAverage = np.roll(self._lastAverage, +1)
 		self._lastError = np.roll(self._lastError, +1)
-		self._lastAverage[0] = np.mean(self._averageBuffer)
-		self._lastError[0] = np.std(self._averageBuffer)
+		currentAvgDelay = np.mean(self._averageBuffer)
+		currentStdDelay = np.std(self._averageBuffer)
+		self._lastAverage[0] = currentAvgDelay
+		self._lastError[0] = currentStdDelay
 
+		currentVelocity = msg['velocity']
+
+		self._windowMain['txtCurV'].update(round(currentVelocity * 3.6, 2))
+		self._windowMain['txtCurDelay'].update("{:0.3e}".format(corrMaxT))
+		self._windowMain['txtAvgDelay'].update("{:0.3e}".format(currentAvgDelay))
+		self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
+		self._windowMain['txtC'].update("ToDo")
+		self._windowMain['txtCErr'].update("ToDo")
+		self._windowMain['txtDeviation'].update("ToDo")
+		
 		# Plot into our "raw" data frame ...
 		ax = self._figure_begindraw('rawData')
 		ax.plot(msg['t'], msg[1], label = 'Channel 1')

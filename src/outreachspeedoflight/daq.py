@@ -84,7 +84,30 @@ class MSO5000Oscilloscope_Simulation:
 	def setChannelScale(self, channel, perdivision):
 		if self._logger is not None:
 			self._logger.debug(f"[OSCISIM] Setting channel scale for channel {channel} to {perdivision}")
-		
+
+	def setCounterEnabled(self, enable):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting counter status to {enable}")
+	def setCounterChannel(self, channel):
+		channel = int(channel)
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Channel has to be in range 1 - 4")
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting counter channel source to {channel}")
+	def setCounterMode(self, mode):
+		if mode == "f":
+			mode = "frequency"
+		elif mode == "t":
+			mode = "period"
+		else:
+			raise ValueError("Mode has to be (f)requency or (t)ime")
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Setting counter mode {mode}")
+	def queryCounter(self):
+		if self._logger is not None:
+			self._logger.debug(f"[OSCISIM] Queried random counter data")
+		return random.uniform(60,100)
+
 
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
@@ -212,6 +235,28 @@ class MSO5000Oscilloscope:
 			raise ValueError("Out of range")
 		self.scpiCommand_NoReply(f":CHAN{channel}:SCAL {perdivision}")
 
+	def setCounterEnabled(self, enable):
+		if enable:
+			self.scpiCommand_NoReply(":COUN:ENAB ON")
+		else:
+			self.scpiCommand_NoReply(":COUN:ENAB OFF")
+	def setCounterChannel(self, channel):
+		channel = int(channel)
+		if (channel < 1) or (channel > 4):
+			raise ValueError("Channel has to be in range 1 - 4")
+		self.scpiCommand_NoReply(f":COUN:SOUR CHAN{channel}")
+	def setCounterMode(self, mode):
+		if mode == "f":
+			mode = "FREQ"
+		elif mode == "t":
+			mode = "PER"
+		else:
+			raise ValueError("Mode has to be (f)requency or (t)ime")
+		self.scpiCommand_NoReply(f":COUN:MODE {mode}")
+	def queryCounter(self):
+		data = self.scpiCommand(":COUN:CURR?")
+		return float(data)
+
 	def queryData(self, channel):
 		if isinstance(channel, list) or isinstance(channel, tuple):
 			res = {
@@ -300,6 +345,17 @@ class SpeedOfLightDAQ:
 				if "scale" in self._cfg['osci']['ch2']:
 					self._osci.setChannelScale(2, self._cfg['osci']['ch2']['scale'])
 
+		self._chopperDiameter = None
+		self._chopperCircumference = None
+
+		if "chopper" in self._cfg:
+			if "diameter" in self._cfg['chopper']:
+				self._chopperDiameter = self._cfg['chopper']['diameter']
+				self._chopperCircumference = self._chopperDiameter * math.pi
+
+		self._osci.setCounterEnabled(True)
+		self._osci.setCounterChannel(1)
+		self._osci.setCounterMode('f')
 
 	def run(self):
 		# Run one measurement after each other ...
@@ -319,6 +375,11 @@ class SpeedOfLightDAQ:
 				self._osci.setTriggerSweep_Normal()
 
 			data = self._osci.queryData((1,2))
+			if self._chopperCircumference is not None:
+				data['velocity'] = (self._chopperCircumference * self._osci.queryCounter())
+			else:
+				data['velocity'] = self._osci.queryCounter()
+
 			data['t'] = np.linspace(0, self._totalSampleTime, len(data[1]))
 			try:
 				#Wait for empty queue ...
