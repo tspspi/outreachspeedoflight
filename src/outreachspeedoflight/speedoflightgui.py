@@ -56,6 +56,10 @@ class SpeedOfLightGUI:
 			self._averageSamples = 32
 
 		self._lastEstimates = np.zeros((self._lastEstimatesCount,))
+		self._lastEstimatesC = np.zeros((self._lastEstimatesCount,))
+		self._lastDeviatePercent = np.zeros((self._lastEstimatesCount,))
+		self._lastEstimatesAvgC = np.zeros((self._lastEstimatesCount,))
+		self._lastEstimatesStdC = np.zeros((self._lastEstimatesCount,))
 		self._averageBuffer = np.zeros((self._averageSamples,))
 		self._averageBufferIdx = 0
 
@@ -81,35 +85,42 @@ class SpeedOfLightGUI:
 				], vertical_alignment='t'),
 				sg.Column([
 					[ sg.Canvas(size=self._plotsize, key='canvLastAvg') ],
-					[ sg.Canvas(size=self._plotsize, key='canvLastEstimates') ]
+					[ sg.Canvas(size=self._plotsize, key='canvLastEstimates') ],
+					[ sg.Canvas(size=self._plotsize, key='canvSpeedOfLight') ]
 				], vertical_alignment='t'),
 				sg.Column([
-					[ sg.Text("Current speed: ", text_color="#E2F0CB") ],
-					[ sg.Text("Measured delay: ", text_color="#E2F0CB") ],
-					[ sg.Text("Averaged delay: ", text_color="#E2F0CB") ],
-					[ sg.Text("Delay error: ", text_color="#E2F0CB") ],
-					[ sg.Text("Speed of light: ", text_color="#FFB7B2") ],
-					[ sg.Text("Speed of light error: ", text_color="#FFB7B2") ],
-					[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2") ]
-				], vertical_alignment='t'),
-				sg.Column([
-					[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB") ],
-					[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB") ],
-					[ sg.Text("000000", key="txtAvgDelay", text_color="#E2F0CB") ],
-					[ sg.Text("000000", key="txtErrDelay", text_color="#E2F0CB") ],
-					[ sg.Text("000000", key="txtC", text_color="#FFB7B2") ],
-					[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2") ],
-					[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2") ]
-				], vertical_alignment='t'),
-				sg.Column([
-					[ sg.Text("km/h", text_color="#E2F0CB")  ],
-					[ sg.Text("s", text_color="#E2F0CB") ],
-					[ sg.Text("s", text_color="#E2F0CB")  ],
-					[ sg.Text("s", text_color="#E2F0CB") ],
-					[ sg.Text("m/s", text_color="#FFB7B2") ],
-					[ sg.Text("m/s", text_color="#FFB7B2") ],
-					[ sg.Text("%", text_color="#FFB7B2") ]
-				], vertical_alignment='t')
+					[
+						sg.Column([
+							[ sg.Text("Current speed: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("Measured delay: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("Averaged delay: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("Delay error: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("Speed of light: ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("Speed of light error: ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2", font=("Helvetica", 23)) ]
+						], vertical_alignment='t'),
+						sg.Column([
+							[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtAvgDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtErrDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtC", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2", font=("Helvetica", 23)) ]
+						], vertical_alignment='t'),
+						sg.Column([
+							[ sg.Text("km/h", text_color="#E2F0CB", font=("Helvetica", 23))  ],
+							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23))  ],
+							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("%", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+						], vertical_alignment='t')
+					],
+					[ sg.Canvas(size=self._plotsize, key='canvDeviatePercent') ],
+					[ sg.Canvas(size=self._plotsize, key='canvSpeedOfLightAvg') ]
+				])
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
@@ -117,11 +128,15 @@ class SpeedOfLightGUI:
 
 
 		self._figures = {
-			'rawData' : self._init_figure('canvRawData', 'Time', 'Signal', 'Captured data (normalized)'),
-			'rawDataDiff' : self._init_figure('canvRawDataDiff', 'Time', 'Signal', 'Difference between channels', legend = False),
-			'rawDataCorr' : self._init_figure('canvRawDataCorr', 'Time', 'Signal', 'Correlation function', legend = False),
+			'rawData' : self._init_figure('canvRawData', 'Time [s]', 'Signal [V]', 'Captured data (normalized)'),
+			'rawDataDiff' : self._init_figure('canvRawDataDiff', 'Time [s]', 'Signal [V]', 'Difference between channels', legend = False),
+			'rawDataCorr' : self._init_figure('canvRawDataCorr', 'Time [s]', 'Correlation', 'Correlation function', legend = False),
 			'lastAvg' : self._init_figure('canvLastAvg', 'Measurements', 'Delay', 'Delay (averaged)', legend = False),
-			'lastEstimates' : self._init_figure('canvLastEstimates', 'Measurements', 'Delay', 'Last measurements', legend = False)
+			'lastEstimates' : self._init_figure('canvLastEstimates', 'Measurements', 'Delay', 'Last measurements', legend = False),
+			'speedoflight' : self._init_figure('canvSpeedOfLight', 'Measurements', 'Speed of light [m/s]', 'Single speed of light est.', legend = False),
+
+			'deviatePercent' : self._init_figure('canvDeviatePercent', 'Measurements', 'Deviation [%]', 'Deviation from real value', legend = False),
+			'speedoflightavg' : self._init_figure('canvSpeedOfLightAvg', 'Measurements', 'Speed of light [m/s]', 'Averaged speed of light', legend = False)
 		}
 
 	def _readConfigurationFile(self):
@@ -246,10 +261,18 @@ class SpeedOfLightGUI:
 
 		newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
 		newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
-
-		print(f"Used n: {msg['path']['n']}")
 		newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
-		deviatePercent = ((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0)*100.0
+		deviatePercent =  (abs((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0))*100.0
+
+		# Update deviation and speed of light estimates
+		self._lastEstimatesC = np.roll(self._lastEstimatesC, +1)
+		self._lastEstimatesAvgC = np.roll(self._lastEstimatesAvgC, +1)
+		self._lastEstimatesStdC = np.roll(self._lastEstimatesStdC, +1)
+		self._lastDeviatePercent = np.roll(self._lastDeviatePercent, +1)
+		self._lastEstimatesC[0] = newCurrentSpeedoflightEstimate
+		self._lastEstimatesAvgC[0] = newAverageSpeedoflightEstimate
+		self._lastEstimatesStdC[0] = newAverageSpeedoflightEstimateErr
+		self._lastDeviatePercent[0] = deviatePercent
 
 		self._windowMain['txtCurV'].update(round(currentVelocity * 3.6, 2))
 		self._windowMain['txtCurDelay'].update("{:0.3e}".format(corrMaxT))
@@ -282,12 +305,27 @@ class SpeedOfLightGUI:
 		ax.errorbar(range(len(self._lastAverage)), self._lastAverage, yerr = self._lastError, label = "Averaged results")
 		self._figure_enddraw('lastAvg')
 
+		ax = self._figure_begindraw('speedoflight')
+		ax.plot(self._lastEstimatesC, label = "Last estimates")
+		self._figure_enddraw('speedoflight')
+
+		ax = self._figure_begindraw('speedoflightavg')
+		ax.errorbar(range(len(self._lastEstimatesAvgC)), self._lastEstimatesAvgC, yerr = self._lastEstimatesStdC, label = "Averaged estimates")
+		self._figure_enddraw('speedoflightavg')
+
+		ax = self._figure_begindraw('deviatePercent')
+		ax.plot(self._lastDeviatePercent, label = "Deviation in percent")
+		self._figure_enddraw('deviatePercent')
+
 	def runUI(self):
 		while True:
 			event, values = self._windowMain.read(timeout = 10)
-			if event in ('btnExit', None):
+			if event in ('btnExit', None, sg.WIN_CLOSED):
 				self._logger.debug("[GUI] User requests termination, signalling to DAQ")
 				self._queueGUItoDAQ.put(None)
+				if event == sg.WIN_CLOSED:
+					sleep(5)
+					break
 
 			try:
 				newItem = self._queueDAQtoGUI.get(block = False)
