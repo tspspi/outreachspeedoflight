@@ -171,14 +171,16 @@ class SpeedOfLightGUI:
 		s2 = np.concatenate((s2, 1.0 - s2))
 
 		msg['correlation'] = np.correlate(s1, s2, "full")
+		msg['correlationt'] = np.linspace(-2 * msg['t'][-1], 2 * msg['t'][-1], len(msg['correlation']))
 		corrMaxIdx = np.argmax(msg['correlation'])
+		corrMaxT = msg['correlationt'][corrMaxIdx]
 		corrMaxVal = msg['correlation'][corrMaxIdx]
 		corrMaxIdxShift = -1.0 * (corrMaxIdx - len(msg['correlation']) / 2)
 
 		# Insert into ringbuffer / append to "last" measurements
 		self._lastEstimates = np.roll(self._lastEstimates, +1)
-		self._lastEstimates[0] = corrMaxIdxShift
-		self._averageBuffer[self._averageBufferIdx] = corrMaxIdxShift
+		self._lastEstimates[0] = corrMaxT
+		self._averageBuffer[self._averageBufferIdx] = corrMaxT
 		self._averageBufferIdx = (self._averageBufferIdx + 1) % len(self._averageBuffer)
 
 		# Do averaging and error calculation
@@ -189,20 +191,17 @@ class SpeedOfLightGUI:
 
 		# Plot into our "raw" data frame ...
 		ax = self._figure_begindraw('rawData')
-		ax.plot(msg[1], label = 'Channel 1')
-		ax.plot(msg[2], label = 'Channel 2')
-		#ax.plot(msg[1], label = 'Channel 1')
-		#ax.plot(msg[2], label = 'Channel 2')
+		ax.plot(msg['t'], msg[1], label = 'Channel 1')
+		ax.plot(msg['t'], msg[2], label = 'Channel 2')
 		self._figure_enddraw('rawData')
 
 		ax = self._figure_begindraw('rawDataDiff')
-		ax.plot(msg['diff'], label = 'Difference')
+		ax.plot(msg['t'],msg['diff'], label = 'Difference')
 		self._figure_enddraw('rawDataDiff')
 
 		ax = self._figure_begindraw('rawDataCorr')
-		ax.plot(msg['correlation'], label = 'Correlation')
-		ax.plot(corrMaxIdx, corrMaxVal, label = 'Maximum', marker="o")
-		self._logger.debug(f"[CORR] New maximum estimate: {corrMaxIdxShift}")
+		ax.plot(msg['correlationt'], msg['correlation'], label = 'Correlation')
+		ax.plot(corrMaxT, corrMaxVal, label = 'Maximum', marker="o")
 		self._figure_enddraw('rawDataCorr')
 
 		ax = self._figure_begindraw('lastEstimates')

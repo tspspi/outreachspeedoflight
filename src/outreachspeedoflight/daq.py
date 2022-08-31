@@ -276,7 +276,10 @@ class SpeedOfLightDAQ:
 			self._osci = MSO5000Oscilloscope_Simulation(logger = self._logger)
 			self._logger.error(f"[DAQ] {e}")
 
+		self._totalSampleTime = None
+
 		if ("osci" in self._cfg) and ("sperdiv" in self._cfg["osci"]):
+			self._totalSampleTime = float(self._cfg["osci"]["sperdiv"]) * 10.0
 			self._osci.setTimebaseModeMain()
 			self._osci.setTimebasePerDivision(self._cfg["osci"]["sperdiv"])
 
@@ -316,7 +319,10 @@ class SpeedOfLightDAQ:
 				self._osci.setTriggerSweep_Normal()
 
 			data = self._osci.queryData((1,2))
+			data['t'] = np.linspace(0, self._totalSampleTime, len(data[1]))
 			try:
+				#Wait for empty queue ...
+				self._queueDAQtoGUI.join()
 				self._queueDAQtoGUI.put(data, block = False)
 			except:
 				self._logger.debug("[DAQ] Dropping measurement due to full queue")
