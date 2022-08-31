@@ -322,6 +322,16 @@ def mainStartup_DAQ(queueDAQtoGUI, queueGUItoDAQ):
 	daq.run()
 
 def mainStartup():
+	# Check the configuration files are present
+	guiCfgPath = os.path.join(Path.home(), ".config/speedoflight/gui.conf")
+	if not os.path.exists(guiCfgPath):
+		print(f"GUI configuration file missing at {guiCfgPath}")
+		return
+	daqCfgPath = os.path.join(Path.home(), ".config/speedoflight/daq.conf")
+	if not os.path.exists(daqCfgPath):
+		print(f"GUI configuration file missing at {daqCfgPath}")
+		return
+	
 	# multictx = mp.get_context("fork")
 	multictx = mp.get_context("spawn")
 	queueDAQtoGUI = multictx.JoinableQueue()
