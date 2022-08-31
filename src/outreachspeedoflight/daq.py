@@ -375,6 +375,10 @@ class SpeedOfLightDAQ:
 				self._osci.setTriggerSweep_Normal()
 
 			data = self._osci.queryData((1,2))
+			if len(data[1]) != len(data[2]):
+				self._logger.debug("[DAQ] Dropping samples due to different trace widths")
+				continue
+
 			if self._chopperCircumference is not None:
 				data['velocity'] = (self._chopperCircumference * self._osci.queryCounter())
 			else:
