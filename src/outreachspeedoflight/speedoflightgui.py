@@ -384,13 +384,5 @@ def mainStartup():
 	gui = SpeedOfLightGUI(queueDAQtoGUI, queueGUItoDAQ)
 	gui.runUI()
 
-#	while True:
-#		newData = queueDAQtoGUI.get()
-#		queueDAQtoGUI.task_done()
-#		if newData is None:
-#			break
-#		print(newData)
-
-
 if __name__ == "__main__":
 	mainStartup()
