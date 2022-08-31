@@ -353,6 +353,15 @@ class SpeedOfLightDAQ:
 				self._chopperDiameter = self._cfg['chopper']['diameter']
 				self._chopperCircumference = self._chopperDiameter * math.pi
 
+		self._pathlen = 100
+		self._pathn = 1
+
+		if "path" in self._cfg:
+			if "length" in self._cfg["path"]:
+				self._pathlen = self._cfg["path"]["length"]
+			if "n" in self._cfg["path"]:
+				self._pathn = self._cfg["path"]["length"]
+
 		self._osci.setCounterEnabled(True)
 		self._osci.setCounterChannel(1)
 		self._osci.setCounterMode('f')
@@ -383,6 +392,11 @@ class SpeedOfLightDAQ:
 				data['velocity'] = (self._chopperCircumference * self._osci.queryCounter())
 			else:
 				data['velocity'] = self._osci.queryCounter()
+
+			data['path'] = {
+				'len' : self._pathlen,
+				'n' : self._pathn
+			}
 
 			data['t'] = np.linspace(0, self._totalSampleTime, len(data[1]))
 			try:
