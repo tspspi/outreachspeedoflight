@@ -146,7 +146,7 @@ class SpeedOfLightGUI:
 	def _figure_enddraw(self, figname):
 		self._figures[figname]['axis'].set_xlabel(self._figures[figname]['xlabel'])
 		self._figures[figname]['axis'].set_ylabel(self._figures[figname]['ylabel'])
-		self._figures[figname]['axis'].set_ylabel(self._figures[figname]['title'])
+		self._figures[figname]['axis'].set_title(self._figures[figname]['title'])
 		if self._figures[figname]['legend']:
 			self._figures[figname]['axis'].legend()
 		self._figures[figname]['fig_agg'].draw()
