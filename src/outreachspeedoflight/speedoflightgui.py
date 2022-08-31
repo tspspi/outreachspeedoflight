@@ -19,6 +19,9 @@ import queue
 import os
 from pathlib import Path
 
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
+
 # Import our own modules
 from daq import SpeedOfLightDAQ
 
@@ -75,11 +78,11 @@ class SpeedOfLightGUI:
 					[ sg.Canvas(size=self._plotsize, key='canvRawData') ],
 					[ sg.Canvas(size=self._plotsize, key='canvRawDataDiff') ],
 					[ sg.Canvas(size=self._plotsize, key='canvRawDataCorr') ]
-				]),
+				], vertical_alignment='t'),
 				sg.Column([
 					[ sg.Canvas(size=self._plotsize, key='canvLastAvg') ],
 					[ sg.Canvas(size=self._plotsize, key='canvLastEstimates') ]
-				]),
+				], vertical_alignment='t'),
 				sg.Column([
 					[ sg.Text("Current speed: ", text_color="#E2F0CB") ],
 					[ sg.Text("Measured delay: ", text_color="#E2F0CB") ],
@@ -88,7 +91,7 @@ class SpeedOfLightGUI:
 					[ sg.Text("Speed of light: ", text_color="#FFB7B2") ],
 					[ sg.Text("Speed of light error: ", text_color="#FFB7B2") ],
 					[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2") ]
-				]),
+				], vertical_alignment='t'),
 				sg.Column([
 					[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB") ],
 					[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB") ],
@@ -97,7 +100,7 @@ class SpeedOfLightGUI:
 					[ sg.Text("000000", key="txtC", text_color="#FFB7B2") ],
 					[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2") ],
 					[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2") ]
-				]),
+				], vertical_alignment='t'),
 				sg.Column([
 					[ sg.Text("km/h", text_color="#E2F0CB")  ],
 					[ sg.Text("s", text_color="#E2F0CB") ],
@@ -106,7 +109,7 @@ class SpeedOfLightGUI:
 					[ sg.Text("m/s", text_color="#FFB7B2") ],
 					[ sg.Text("m/s", text_color="#FFB7B2") ],
 					[ sg.Text("%", text_color="#FFB7B2") ]
-				])
+				], vertical_alignment='t')
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
@@ -117,7 +120,7 @@ class SpeedOfLightGUI:
 			'rawData' : self._init_figure('canvRawData', 'Time', 'Signal', 'Captured data (normalized)'),
 			'rawDataDiff' : self._init_figure('canvRawDataDiff', 'Time', 'Signal', 'Difference between channels', legend = False),
 			'rawDataCorr' : self._init_figure('canvRawDataCorr', 'Time', 'Signal', 'Correlation function', legend = False),
-			'lastAvg' : self._init_figure('canvLastAvg', 'Measurements', 'Delay', 'Delay between last measurements (averaged)', legend = False),
+			'lastAvg' : self._init_figure('canvLastAvg', 'Measurements', 'Delay', 'Delay (averaged)', legend = False),
 			'lastEstimates' : self._init_figure('canvLastEstimates', 'Measurements', 'Delay', 'Last measurements', legend = False)
 		}
 
@@ -186,15 +189,15 @@ class SpeedOfLightGUI:
 
 	def _figure_begindraw(self, figname):
 		self._figures[figname]['axis'].cla()
+		self._figures[figname]['axis'].set_xlabel(self._figures[figname]['xlabel'])
+		self._figures[figname]['axis'].set_ylabel(self._figures[figname]['ylabel'])
+		self._figures[figname]['axis'].set_title(self._figures[figname]['title'])
 		if self._figures[figname]['grid']:
 			self._figures[figname]['axis'].grid()
 		self._figure_colors(self._figures[figname]['axis'])
 		return self._figures[figname]['axis']
 
 	def _figure_enddraw(self, figname):
-		self._figures[figname]['axis'].set_xlabel(self._figures[figname]['xlabel'])
-		self._figures[figname]['axis'].set_ylabel(self._figures[figname]['ylabel'])
-		self._figures[figname]['axis'].set_title(self._figures[figname]['title'])
 		if self._figures[figname]['legend']:
 			self._figures[figname]['axis'].legend()
 		self._figures[figname]['fig_agg'].draw()
