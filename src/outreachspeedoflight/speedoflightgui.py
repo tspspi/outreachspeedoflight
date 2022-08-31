@@ -271,7 +271,7 @@ class SpeedOfLightGUI:
 
 		ax = self._figure_begindraw('rawDataCorr')
 		ax.plot(msg['correlationt'], msg['correlation'], label = 'Correlation')
-		ax.plot(corrMaxT, corrMaxVal, label = 'Maximum', marker="o")
+		ax.plot(-1.0 * corrMaxT, corrMaxVal, label = 'Maximum', marker="o")
 		self._figure_enddraw('rawDataCorr')
 
 		ax = self._figure_begindraw('lastEstimates')
