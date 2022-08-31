@@ -39,6 +39,13 @@ The experimental setup consists of two basic parts:
 
 ![Beamsplitter and photodiode assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_diodeandcoupling.png)
 
+# Example screenshots
+
+## Running the embedded DAQ simulation
+
+![Running simulation](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/screenshot_simulation.png)
+
+
 # Configuration files
 
 ## daq.conf
