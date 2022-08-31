@@ -23,7 +23,7 @@ from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
 # Import our own modules
-from daq import SpeedOfLightDAQ
+from outreachspeedoflight.daq import SpeedOfLightDAQ
 
 class SpeedOfLightGUI:
 	def __init__(self, queueDAQtoGUI, queueGUItoDAQ, defaultLoglevel = logging.DEBUG):
@@ -383,6 +383,3 @@ def mainStartup():
 
 	gui = SpeedOfLightGUI(queueDAQtoGUI, queueGUItoDAQ)
 	gui.runUI()
-
-if __name__ == "__main__":
-	mainStartup()
