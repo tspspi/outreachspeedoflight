@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter as Tk
 import PySimpleGUI as sg
+sg.change_look_and_feel('DarkAmber')
 
 import numpy as np
 
@@ -80,36 +81,37 @@ class SpeedOfLightGUI:
 					[ sg.Canvas(size=self._plotsize, key='canvLastEstimates') ]
 				]),
 				sg.Column([
-					[ sg.Text("Current speed: ") ],
-					[ sg.Text("Measured delay: ") ],
-					[ sg.Text("Averaged delay: ") ],
-					[ sg.Text("Delay error: ") ],
-					[ sg.Text("Speed of light: ") ],
-					[ sg.Text("Speed of light error: ") ],
-					[ sg.Text("Deviation from real speed: ") ]
+					[ sg.Text("Current speed: ", text_color="#E2F0CB") ],
+					[ sg.Text("Measured delay: ", text_color="#E2F0CB") ],
+					[ sg.Text("Averaged delay: ", text_color="#E2F0CB") ],
+					[ sg.Text("Delay error: ", text_color="#E2F0CB") ],
+					[ sg.Text("Speed of light: ", text_color="#FFB7B2") ],
+					[ sg.Text("Speed of light error: ", text_color="#FFB7B2") ],
+					[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2") ]
 				]),
 				sg.Column([
-					[ sg.Text("000000", key="txtCurV") ],
-					[ sg.Text("000000", key="txtCurDelay") ],
-					[ sg.Text("000000", key="txtAvgDelay") ],
-					[ sg.Text("000000", key="txtErrDelay") ],
-					[ sg.Text("000000", key="txtC") ],
-					[ sg.Text("000000", key="txtCErr") ],
-					[ sg.Text("000000", key="txtDeviation") ]
+					[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB") ],
+					[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB") ],
+					[ sg.Text("000000", key="txtAvgDelay", text_color="#E2F0CB") ],
+					[ sg.Text("000000", key="txtErrDelay", text_color="#E2F0CB") ],
+					[ sg.Text("000000", key="txtC", text_color="#FFB7B2") ],
+					[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2") ],
+					[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2") ]
 				]),
 				sg.Column([
-					[ sg.Text("km/h") ],
-					[ sg.Text("s") ],
-					[ sg.Text("s") ],
-					[ sg.Text("s") ],
-					[ sg.Text("m/s") ],
-					[ sg.Text("m/s") ],
-					[ sg.Text("%") ]
+					[ sg.Text("km/h", text_color="#E2F0CB")  ],
+					[ sg.Text("s", text_color="#E2F0CB") ],
+					[ sg.Text("s", text_color="#E2F0CB")  ],
+					[ sg.Text("s", text_color="#E2F0CB") ],
+					[ sg.Text("m/s", text_color="#FFB7B2") ],
+					[ sg.Text("m/s", text_color="#FFB7B2") ],
+					[ sg.Text("%", text_color="#FFB7B2") ]
 				])
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
 		self._windowMain = sg.Window("Speed of light", layout, size=self._mainwindowsize, finalize=True)
+
 
 		self._figures = {
 			'rawData' : self._init_figure('canvRawData', 'Time', 'Signal', 'Captured data (normalized)'),
@@ -139,8 +141,12 @@ class SpeedOfLightGUI:
 	def _init_figure(self, canvasName, xlabel, ylabel, title, grid=True, legend=True):
 		figTemp = Figure()
 		fig = Figure(figsize = (self._plotsize[0] / figTemp.get_dpi(), self._plotsize[1] / figTemp.get_dpi()))
+		self._figure_colors_fig(fig)
 
 		ax = fig.add_subplot(111)
+
+		self._figure_colors(ax)
+
 		ax.set_xlabel(xlabel)
 		ax.set_ylabel(ylabel)
 		ax.set_title(title)
@@ -162,10 +168,27 @@ class SpeedOfLightGUI:
 			'legend' : legend
 		}
 
+
+	def _figure_colors_fig(self, fig):
+		fig.set_facecolor((0,0,0))
+
+	def _figure_colors(self, ax):
+		ax.set_facecolor((0,0,0))
+		ax.xaxis.label.set_color((0.77,0.80,0.92))
+		ax.yaxis.label.set_color((0.77,0.80,0.92))
+		ax.title.set_color((0.77,0.80,0.92))
+		ax.spines['top'].set_color((0.77,0.80,0.92))
+		ax.spines['bottom'].set_color((0.77,0.80,0.92))
+		ax.spines['left'].set_color((0.77,0.80,0.92))
+		ax.spines['right'].set_color((0.77,0.80,0.92))
+		ax.tick_params(axis='x', colors=(0.77,0.80,0.92))
+		ax.tick_params(axis='y', colors=(0.77,0.80,0.92))
+
 	def _figure_begindraw(self, figname):
 		self._figures[figname]['axis'].cla()
 		if self._figures[figname]['grid']:
 			self._figures[figname]['axis'].grid()
+		self._figure_colors(self._figures[figname]['axis'])
 		return self._figures[figname]['axis']
 
 	def _figure_enddraw(self, figname):
@@ -198,7 +221,7 @@ class SpeedOfLightGUI:
 		msg['correlation'] = np.correlate(s1, s2, "full")
 		msg['correlationt'] = np.linspace(-2 * msg['t'][-1], 2 * msg['t'][-1], len(msg['correlation']))
 		corrMaxIdx = np.argmax(msg['correlation'])
-		corrMaxT = msg['correlationt'][corrMaxIdx]
+		corrMaxT = -1.0 * msg['correlationt'][corrMaxIdx]
 		corrMaxVal = msg['correlation'][corrMaxIdx]
 		corrMaxIdxShift = -1.0 * (corrMaxIdx - len(msg['correlation']) / 2)
 
@@ -218,13 +241,20 @@ class SpeedOfLightGUI:
 
 		currentVelocity = msg['velocity']
 
+		newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
+		newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
+
+		print(f"Used n: {msg['path']['n']}")
+		newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
+		deviatePercent = ((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0)*100.0
+
 		self._windowMain['txtCurV'].update(round(currentVelocity * 3.6, 2))
 		self._windowMain['txtCurDelay'].update("{:0.3e}".format(corrMaxT))
 		self._windowMain['txtAvgDelay'].update("{:0.3e}".format(currentAvgDelay))
 		self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
-		self._windowMain['txtC'].update("ToDo")
-		self._windowMain['txtCErr'].update("ToDo")
-		self._windowMain['txtDeviation'].update("ToDo")
+		self._windowMain['txtC'].update("{:0.3e}".format(newAverageSpeedoflightEstimate))
+		self._windowMain['txtCErr'].update("{:0.3e}".format(newAverageSpeedoflightEstimateErr))
+		self._windowMain['txtDeviation'].update(str(round(deviatePercent, 3)))
 		
 		# Plot into our "raw" data frame ...
 		ax = self._figure_begindraw('rawData')

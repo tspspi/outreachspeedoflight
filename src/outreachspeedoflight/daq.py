@@ -360,7 +360,7 @@ class SpeedOfLightDAQ:
 			if "length" in self._cfg["path"]:
 				self._pathlen = self._cfg["path"]["length"]
 			if "n" in self._cfg["path"]:
-				self._pathn = self._cfg["path"]["length"]
+				self._pathn = self._cfg["path"]["n"]
 
 		self._osci.setCounterEnabled(True)
 		self._osci.setCounterChannel(1)
