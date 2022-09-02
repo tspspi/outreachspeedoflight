@@ -1,4 +1,5 @@
 from time import sleep
+import time
 from math import exp
 
 import socket
@@ -13,6 +14,7 @@ import numpy as np
 import random
 
 import logging
+import datetime
 
 class MSO5000Oscilloscope_Simulation:
 	def __init__(self, filename=None, logger = None):
@@ -322,6 +324,8 @@ class SpeedOfLightDAQ:
 			self._logger.error(f"[DAQ] {e}")
 
 		self._totalSampleTime = None
+		self._maxQueryRate = None
+		self._maxQueryPeriod = None
 
 		if ("osci" in self._cfg) and ("sperdiv" in self._cfg["osci"]):
 			self._totalSampleTime = float(self._cfg["osci"]["sperdiv"]) * 10.0
@@ -344,6 +348,9 @@ class SpeedOfLightDAQ:
 					self._osci.setChannelOffset(2, self._cfg['osci']['ch2']['offset'])
 				if "scale" in self._cfg['osci']['ch2']:
 					self._osci.setChannelScale(2, self._cfg['osci']['ch2']['scale'])
+			if "maxqueryrate" in self._cfg['osci']:
+				self._maxQueryRate = float(self._cfg['osci']['maxqueryrate'])
+				self._maxQueryPeriod = 1.0 / float(self._cfg['osci']['maxqueryrate'])
 
 		self._chopperDiameter = None
 		self._chopperCircumference = None
@@ -372,7 +379,13 @@ class SpeedOfLightDAQ:
 			# Execute run command once when we are not in triggered mode
 			self._osci.run()
 
+		lastQuery = datetime.datetime.now()
 		while True:
+			if self._maxQueryPeriod is not None:
+				if (datetime.datetime.now() - lastQuery).total_seconds() < self._maxQueryPeriod:
+					continue
+			lastQuery = datetime.datetime.now()
+
 			# Depends on configuration if we are running in triggered
 			# or in continuous mode
 			if ("mode" in self._cfg) and (self._cfg["mode"] == "triggered"):
