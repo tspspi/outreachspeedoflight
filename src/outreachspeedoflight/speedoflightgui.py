@@ -124,7 +124,7 @@ class SpeedOfLightGUI:
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
-		self._windowMain = sg.Window("Speed of light", layout, size=self._mainwindowsize, finalize=True)
+		self._windowMain = sg.Window("Speed of light", layout, size=self._mainwindowsize, location=(0,0), finalize=True)
 
 
 		self._figures = {
