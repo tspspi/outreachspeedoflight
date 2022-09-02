@@ -56,6 +56,7 @@ class SpeedOfLightGUI:
 		else:
 			self._averageSamples = 32
 
+		self._lastChopperSpeeds = np.zeros((self._lastEstimatesCount,))
 		self._lastEstimates = np.zeros((self._lastEstimatesCount,))
 		self._lastEstimatesC = np.zeros((self._lastEstimatesCount,))
 		self._lastDeviatePercent = np.zeros((self._lastEstimatesCount,))
@@ -121,7 +122,10 @@ class SpeedOfLightGUI:
 					],
 					[ sg.Canvas(size=self._plotsize, key='canvDeviatePercent') ],
 					[ sg.Canvas(size=self._plotsize, key='canvSpeedOfLightAvg') ]
-				])
+				]),
+				sg.Column([
+					[ sg.Canvas(size=self._plotsize, key='canvChopperSpeed') ]
+				], vertical_alignment='t')
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
@@ -137,7 +141,8 @@ class SpeedOfLightGUI:
 			'speedoflight' : self._init_figure('canvSpeedOfLight', 'Measurements', 'Speed of light [m/s]', 'Single speed of light est.', legend = False),
 
 			'deviatePercent' : self._init_figure('canvDeviatePercent', 'Measurements', 'Deviation [%]', 'Deviation from real value', legend = False),
-			'speedoflightavg' : self._init_figure('canvSpeedOfLightAvg', 'Measurements', 'Speed of light [m/s]', 'Averaged speed of light', legend = False)
+			'speedoflightavg' : self._init_figure('canvSpeedOfLightAvg', 'Measurements', 'Speed of light [m/s]', 'Averaged speed of light', legend = False),
+			'chopperspeed' : self._init_figure('canvChopperSpeed', 'Measurement', 'Chopper speed [km/h]', 'Chopper speed', legend = False)
 		}
 
 	def _readConfigurationFile(self):
@@ -259,11 +264,16 @@ class SpeedOfLightGUI:
 		self._lastError[0] = currentStdDelay
 
 		currentVelocity = msg['velocity']
+		if currentVelocity > 1e8:
+			currentVelocity = 0
 
 		newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
 		newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
 		newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
 		deviatePercent =  (abs((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0))*100.0
+
+		self._lastChopperSpeeds = np.roll(self._lastChopperSpeeds, +1)
+		self._lastChopperSpeeds[0] = currentVelocity
 
 		# Update deviation and speed of light estimates
 		self._lastEstimatesC = np.roll(self._lastEstimatesC, +1)
@@ -317,6 +327,10 @@ class SpeedOfLightGUI:
 		ax = self._figure_begindraw('deviatePercent')
 		ax.plot(self._lastDeviatePercent, label = "Deviation in percent")
 		self._figure_enddraw('deviatePercent')
+
+		ax = self._figure_begindraw('chopperspeed')
+		ax.plot(self._lastChopperSpeeds, label = "Chopper speed")
+		self._figure_enddraw('chopperspeed')
 
 	def runUI(self):
 		while True:
