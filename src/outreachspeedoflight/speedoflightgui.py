@@ -23,6 +23,9 @@ from pathlib import Path
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
 
+from lmfit import Model
+from lmfit.models import GaussianModel, ConstantModel
+
 # Import our own modules
 from outreachspeedoflight.daq import SpeedOfLightDAQ
 
@@ -145,6 +148,21 @@ class SpeedOfLightGUI:
 			'chopperspeed' : self._init_figure('canvChopperSpeed', 'Measurement', 'Chopper speed [km/h]', 'Chopper speed', legend = False)
 		}
 
+		self._difffit_enable = False
+		self._difffit_primary = False
+		self._difffit_dump = False
+		if "difffit" in self._cfg:
+			if "enable" in self._cfg['difffit']:
+				if self._cfg['difffit']['enable'] == "true":
+					self._difffit_enable = True
+			if "primary" in self._cfg['difffit']:
+				if self._cfg['difffit']['primary'] == "true":
+					self._difffit_primary = True
+			if "dump" in self._cfg['difffit']:
+				if self._cfg['difffit']['dump'] == "true":
+					self._difffit_dump = True
+
+
 	def _readConfigurationFile(self):
 		cfgPath = os.path.join(Path.home(), ".config/speedoflight/gui.conf")
 		self._logger.debug(f"[GUI] Trying to load DAQ configuration from {cfgPath}")
@@ -249,6 +267,23 @@ class SpeedOfLightGUI:
 		corrMaxVal = msg['correlation'][corrMaxIdx]
 		corrMaxIdxShift = -1.0 * (corrMaxIdx - len(msg['correlation']) / 2)
 
+		# Do fitting estimate
+		if self._difffit_enable:
+			peak = GaussianModel()
+			offset = ConstantModel()
+			model = peak + offset
+			param = offset.make_params(c = np.median(msg['diff']))
+			param += peak.guess(msg['diff'], x = msg['t'], amplitude = 0.5)
+			result = model.fit(msg['diff'], param, x=msg['t'])
+			if self._difffit_dump:
+				print(result.fit_report())
+			fitMaxT = result.params['fwhm'].value
+
+		if self._difffit_enable and self._difffit_primary:
+			maxT = fitMaxT
+		else:
+			maxT = corrMaxT
+
 		#if corrMaxT < 0:
 		#	corrMaxT = 0
 		#	corrMaxVal = 0
@@ -256,8 +291,8 @@ class SpeedOfLightGUI:
 
 		# Insert into ringbuffer / append to "last" measurements
 		self._lastEstimates = np.roll(self._lastEstimates, +1)
-		self._lastEstimates[0] = corrMaxT
-		self._averageBuffer[self._averageBufferIdx] = corrMaxT
+		self._lastEstimates[0] = maxT
+		self._averageBuffer[self._averageBufferIdx] = maxT
 		self._averageBufferIdx = (self._averageBufferIdx + 1) % len(self._averageBuffer)
 
 		# Do averaging and error calculation
@@ -275,7 +310,7 @@ class SpeedOfLightGUI:
 			currentVelocity = 0
 
 		if corrMaxT != 0:
-			newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
+			newCurrentSpeedoflightEstimate = (msg['path']['len'] / maxT) * msg['path']['n']
 			newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
 			newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
 			deviatePercent =  (((abs(newAverageSpeedoflightEstimate)-299792458.0) / 299792458.0))*100.0
@@ -299,7 +334,7 @@ class SpeedOfLightGUI:
 		self._lastDeviatePercent[0] = deviatePercent
 
 		self._windowMain['txtCurV'].update(round(currentVelocity * 3.6, 2))
-		self._windowMain['txtCurDelay'].update("{:0.3e}".format(corrMaxT))
+		self._windowMain['txtCurDelay'].update("{:0.3e}".format(maxT))
 		self._windowMain['txtAvgDelay'].update("{:0.3e}".format(currentAvgDelay))
 		# self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
 		self._windowMain['txtCurC'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimate)))
@@ -315,6 +350,8 @@ class SpeedOfLightGUI:
 
 		ax = self._figure_begindraw('rawDataDiff')
 		ax.plot(msg['t'],msg['diff'], label = 'Difference')
+		if self._difffit_enable:
+			ax.plot(msg['t'], result.best_fit, color = 'red', linestyle = 'dashed', label = "Fitting Gaussian")
 		self._figure_enddraw('rawDataDiff')
 
 		ax = self._figure_begindraw('rawDataCorr')
