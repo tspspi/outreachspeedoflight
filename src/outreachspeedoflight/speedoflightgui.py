@@ -274,10 +274,16 @@ class SpeedOfLightGUI:
 		if currentVelocity < 0:
 			currentVelocity = 0
 
-		newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
-		newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
-		newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
-		deviatePercent =  (abs((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0))*100.0
+		if corrMaxT != 0:
+			newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
+			newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
+			newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
+			deviatePercent =  (abs((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0))*100.0
+		else:
+			newCurrentSpeedoflightEstimate = 0
+			newAverageSpeedoflightEstimate = 0
+			newAverageSpeedoflightEstimateErr = 0
+			deviatePercent = 100
 
 		self._lastChopperSpeeds = np.roll(self._lastChopperSpeeds, +1)
 		self._lastChopperSpeeds[0] = currentVelocity
