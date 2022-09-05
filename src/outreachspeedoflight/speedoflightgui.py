@@ -249,6 +249,11 @@ class SpeedOfLightGUI:
 		corrMaxVal = msg['correlation'][corrMaxIdx]
 		corrMaxIdxShift = -1.0 * (corrMaxIdx - len(msg['correlation']) / 2)
 
+		if corrMaxT < 0:
+			corrMaxT = 0
+			corrMaxVal = 0
+			corrMaxIdxShift = 0
+
 		# Insert into ringbuffer / append to "last" measurements
 		self._lastEstimates = np.roll(self._lastEstimates, +1)
 		self._lastEstimates[0] = corrMaxT
@@ -265,6 +270,8 @@ class SpeedOfLightGUI:
 
 		currentVelocity = msg['velocity']
 		if currentVelocity > 1e8:
+			currentVelocity = 0
+		if currentVelocity < 0:
 			currentVelocity = 0
 
 		newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
