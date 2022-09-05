@@ -249,10 +249,10 @@ class SpeedOfLightGUI:
 		corrMaxVal = msg['correlation'][corrMaxIdx]
 		corrMaxIdxShift = -1.0 * (corrMaxIdx - len(msg['correlation']) / 2)
 
-		if corrMaxT < 0:
-			corrMaxT = 0
-			corrMaxVal = 0
-			corrMaxIdxShift = 0
+		#if corrMaxT < 0:
+		#	corrMaxT = 0
+		#	corrMaxVal = 0
+		#	corrMaxIdxShift = 0
 
 		# Insert into ringbuffer / append to "last" measurements
 		self._lastEstimates = np.roll(self._lastEstimates, +1)
@@ -271,14 +271,14 @@ class SpeedOfLightGUI:
 		currentVelocity = msg['velocity']
 		if currentVelocity > 1e8:
 			currentVelocity = 0
-		if currentVelocity < 0:
+		elif currentVelocity < 0:
 			currentVelocity = 0
 
 		if corrMaxT != 0:
 			newCurrentSpeedoflightEstimate = (msg['path']['len'] / corrMaxT) * msg['path']['n']
 			newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
 			newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
-			deviatePercent =  (abs((newAverageSpeedoflightEstimate-299792458.0) / 299792458.0))*100.0
+			deviatePercent =  (((abs(newAverageSpeedoflightEstimate)-299792458.0) / 299792458.0))*100.0
 		else:
 			newCurrentSpeedoflightEstimate = 0
 			newAverageSpeedoflightEstimate = 0
@@ -302,9 +302,9 @@ class SpeedOfLightGUI:
 		self._windowMain['txtCurDelay'].update("{:0.3e}".format(corrMaxT))
 		self._windowMain['txtAvgDelay'].update("{:0.3e}".format(currentAvgDelay))
 		# self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
-		self._windowMain['txtCurC'].update("{:0.3e}".format(newAverageSpeedoflightEstimate))
-		self._windowMain['txtC'].update("{:0.3e}".format(newAverageSpeedoflightEstimate))
-		self._windowMain['txtCErr'].update("{:0.3e}".format(newAverageSpeedoflightEstimateErr))
+		self._windowMain['txtCurC'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimate)))
+		self._windowMain['txtC'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimate)))
+		self._windowMain['txtCErr'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimateErr)))
 		self._windowMain['txtDeviation'].update(str(round(deviatePercent, 3)))
 		
 		# Plot into our "raw" data frame ...
