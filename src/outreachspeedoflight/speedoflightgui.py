@@ -96,8 +96,8 @@ class SpeedOfLightGUI:
 							[ sg.Text("Current speed: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("Measured delay: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("Averaged delay: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("Delay error: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("Speed of light: ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("Speed of light: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("Speed of light (avg): ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 							[ sg.Text("Speed of light error: ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 							[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2", font=("Helvetica", 23)) ]
 						], vertical_alignment='t'),
@@ -105,7 +105,7 @@ class SpeedOfLightGUI:
 							[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("000000", key="txtAvgDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtErrDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("000000", key="txtCurC", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("000000", key="txtC", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 							[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 							[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2", font=("Helvetica", 23)) ]
@@ -114,7 +114,7 @@ class SpeedOfLightGUI:
 							[ sg.Text("km/h", text_color="#E2F0CB", font=("Helvetica", 23))  ],
 							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23))  ],
-							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
+							[ sg.Text("m/s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
 							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 							[ sg.Text("%", text_color="#FFB7B2", font=("Helvetica", 23)) ],
@@ -288,7 +288,8 @@ class SpeedOfLightGUI:
 		self._windowMain['txtCurV'].update(round(currentVelocity * 3.6, 2))
 		self._windowMain['txtCurDelay'].update("{:0.3e}".format(corrMaxT))
 		self._windowMain['txtAvgDelay'].update("{:0.3e}".format(currentAvgDelay))
-		self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
+		# self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
+		self._windowMain['txtCurC'] = newAverageSpeedoflightEstimate
 		self._windowMain['txtC'].update("{:0.3e}".format(newAverageSpeedoflightEstimate))
 		self._windowMain['txtCErr'].update("{:0.3e}".format(newAverageSpeedoflightEstimateErr))
 		self._windowMain['txtDeviation'].update(str(round(deviatePercent, 3)))
