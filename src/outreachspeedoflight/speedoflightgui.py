@@ -161,6 +161,9 @@ class SpeedOfLightGUI:
 			if "dump" in self._cfg['difffit']:
 				if self._cfg['difffit']['dump'] == "true":
 					self._difffit_dump = True
+		self._smooth_movingaverage_n = 0
+		if "movingaverage" in self._cfg:
+			self._smooth_movingaverage_n = int(self._cfg['movingaverage'])
 
 
 	def _readConfigurationFile(self):
@@ -246,6 +249,14 @@ class SpeedOfLightGUI:
 		if (not 1 in msg) or (not 2 in msg):
 			self._logger.warn("Not enough data in data message")
 			return
+
+		# Moving average ...
+		if self._smooth_movingaverage_n > 0:
+			msg[1] = np.convolve(msg[1], np.ones(self._smooth_movingaverage_n)/self._smooth_movingaverage_n, mode = 'valid')
+			msg[2] = np.convolve(msg[2], np.ones(self._smooth_movingaverage_n)/self._smooth_movingaverage_n, mode = 'valid')
+
+		if len(msg['t'] != len(msg[1])):
+			msg['t'] = msg['t'][:len(msg[1])]
 
 		# Normalize
 		msg[1] = msg[1] - np.min(msg[1])
