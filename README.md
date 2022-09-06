@@ -33,17 +33,21 @@ This application:
 The experimental setup consists of two basic parts:
 
 * A chopper assembly - where a bicycle is used (or any other kind of chopper)
-* A beamsplitter and photodiode assembly as well as a long beamline
+* A beam splitter and photodiode assembly as well as a long beam line
 
 ![Chopper assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_chopper.png)
 
-![Beamsplitter and photodiode assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_diodeandcoupling.png)
+![Beam splitter and photodiode assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_diodeandcoupling.png)
 
 # Example screenshots
 
 ## Running the embedded DAQ simulation
 
 ![Running simulation](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/screenshot_simulation.png)
+
+## Example run in the lab
+
+![Test run](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/screenshot_running.png)
 
 
 # Configuration files
@@ -101,12 +105,12 @@ The ```osci``` section configured the MSO5000 oscilloscope:
      a supported value by the oscilloscope
 * A optional maximum query rate in Hz (i.e. queries per second) that can
   be used to limit the amount of queries to the oscilloscope since at some
-  point it won't update it's own local display anymore due to priorization
+  point it won't update it's own local display anymore due to prioritization
   of network queries. When not specified the application queries as fast
   as possible.
 
 The ```chopper``` section configures the chopper that is used. For our
-experimental setup this can be a bicycle or a simple wodden wheel:
+experimental setup this can be a bicycle or a simple wooden wheel:
 
 * ```diameter``` configures the diameter of the wheel in meters. This is only
   used for velocity calculation from trigger rate assuming that only one trigger
@@ -128,10 +132,27 @@ parameter:
 
 ## gui.conf
 
-The user interface can be configured using ```gui.conf```. This allows one to configure:
+The user interface can be configured using ```gui.conf```. This allows one to configure
+some analysis parameters:
 
 * The number of last measurements to be shown using ```lastsamples```
 * The number of measurements to include in rolling average ```averagecount```
+* A optional fit of a Gaussian function into the difference signal (that can
+  also be used instead of the autocorrelation function to detect the time delay).
+  This is done in the ```difffit``` dictionary:
+   * ```enable``` is set to the strings ```"true"``` or ```"false"```. When set
+     to true fitting is enabled. Keep in mind this is numerically more demanding
+	 than the other methods
+   * ```primary``` can be either ```"true"``` or ```"false"```. If set to true
+     the FWHM of the fit is used as measure for time delay of the signals and thus
+	 to calculate the speed of light. When set to ```"false"``` the fit is only plotted
+	 and the speed is still calculated using the cross correlation of both signals
+   * ```dump``` is set to ```"true"``` to dump fitting result and parameters
+     to the standard output (for debugging purposes)
+* To handle noisy signals on the photodiodes ```movingaverage``` can be set to any integer
+  value larger than 0 (or to 0 to disable the feature). It applies a moving average
+  filter of the specified number of samples - and thus applies a low pass filter
+  to the signal.
 
 In addition one can directly configure some layout parameters:
 
@@ -140,4 +161,4 @@ In addition one can directly configure some layout parameters:
   as initially created.
 
 Note that invalid setting of those parameters might clip some graphs or cause
-some strange behaviour of the user interface.
+some strange behavior of the user interface.
