@@ -49,6 +49,12 @@ The experimental setup consists of two basic parts:
 
 ![Test run](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/screenshot_running.png)
 
+![Test run: Chopper setup](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/expsetup_chopper01.jpg)
+
+![Test run: Chopper setup](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/expsetup_chopper02.jpg)
+
+![Test run: Beam splitter and photodiodes](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/expsetup_diodeandcoupling.jpg)
+
 
 # Configuration files
 
