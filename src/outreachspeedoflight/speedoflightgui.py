@@ -324,7 +324,7 @@ class SpeedOfLightGUI:
 			newCurrentSpeedoflightEstimate = (msg['path']['len'] / maxT) * msg['path']['n']
 			newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
 			newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
-			deviatePercent =  (((abs(newAverageSpeedoflightEstimate)-299792458.0) / 299792458.0))*100.0
+			deviatePercent =  ((abs(abs(newAverageSpeedoflightEstimate)-299792458.0) / 299792458.0))*100.0
 		else:
 			newCurrentSpeedoflightEstimate = 0
 			newAverageSpeedoflightEstimate = 0
