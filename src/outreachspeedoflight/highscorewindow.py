@@ -19,18 +19,20 @@ import csv
 
 from datetime import datetime
 
+from outreachspeedoflight.strings import strings
+
 class HighScoreWindow:
 	def _createWindow(self):
 		self._highscoreHeadings = [
-			"Start time",
-			"End time",
-			"Name",
-			"Velocity (max)",
-			"Velocity (avg)",
-			"Best speed of light",
-			"Best deviation (pct)",
-			"Average speed of light",
-			"Error deviation"
+			strings[self._lang]['start_time'],
+			strings[self._lang]['end_time'],
+			strings[self._lang]['name'],
+			strings[self._lang]['velocity_max'],
+			strings[self._lang]['velocity_avg'],
+			strings[self._lang]['best_speed_of_light'],
+			strings[self._lang]['best_deviation'],
+			strings[self._lang]['stat_average_speed_of_light'],
+			strings[self._lang]['errordeviation']
 		]
 
 		tmpHighScore = []
@@ -43,24 +45,24 @@ class HighScoreWindow:
 				tablesize = (int(self._cfg["tablesize"]['x']), int(self._cfg["tablesize"]['y']))
 
 		layout = [
-			[ sg.Text("Best estimates") ],
+			[ sg.Text(strings[self._lang]['bestestimatestitle']) ],
 
 			[
 				sg.Column([
 					[
 						sg.Column([
-							[ sg.Text("Name:") ],
-							[ sg.Text("Maximum speed:") ],
-							[ sg.Text("Average speed:") ],
+							[ sg.Text(f"{strings[self._lang]['name']}:") ],
+							[ sg.Text(f"{strings[self._lang]['maxspeed']}:") ],
+							[ sg.Text(f"{strings[self._lang]['avgspeed']}:") ],
 
-							[ sg.Text("Best measurement:") ],
-							[ sg.Text("Best deviation):") ],
+							[ sg.Text(f"{strings[self._lang]['bestmeasurement']}:") ],
+							[ sg.Text(f"{strings[self._lang]['bestdeviation']}:") ],
 
-							[ sg.Text("Average measurement:") ],
-							[ sg.Text("Average deviation):") ],
+							[ sg.Text(f"{strings[self._lang]['averagemeasurement']}:") ],
+							[ sg.Text(f"{strings[self._lang]['averagedeviation']}:") ],
 
-							[ sg.Button("Start", key="btnStartStop") ],
-							[ sg.Button("Abort", key="btnAbort") ]
+							[ sg.Button(strings[self._lang]['start'], key="btnStartStop") ],
+							[ sg.Button(strings[self._lang]['abort'], key="btnAbort") ]
 						], vertical_alignment='t'),
 						sg.Column([
 							[ sg.InputText(key="txtName") ],
@@ -75,14 +77,14 @@ class HighScoreWindow:
 						], vertical_alignment='t'),
 						sg.Column([
 							[ sg.Text(" ") ],
-							[ sg.Text("km/h", key="txtVelocityMax") ],
-							[ sg.Text("km/h", key="txtVelocityAvg") ],
+							[ sg.Text("km/h") ],
+							[ sg.Text("km/h") ],
 
-							[ sg.Text("m/s", key="txtMeasBest") ],
-							[ sg.Text("%", key="txtMeasBestDeviation") ],
+							[ sg.Text("m/s") ],
+							[ sg.Text("%") ],
 
-							[ sg.Text("m/s", key="txtMeasAvg") ],
-							[ sg.Text("m/s", key="txtMeasDev") ]
+							[ sg.Text("m/s") ],
+							[ sg.Text("m/s") ]
 						], vertical_alignment='t')
 					]
 				], vertical_alignment='t'),
@@ -103,6 +105,8 @@ class HighScoreWindow:
 		return windowMain
 
 	def __init__(self, cfgPath, queueGUItoHighscore, defaultLoglevel = logging.DEBUG):
+		self._lang = "en"
+
 		self._logger = logging.getLogger(__name__)
 		self._logger.addHandler(logging.StreamHandler())
 		self._logger.setLevel(defaultLoglevel)
@@ -114,6 +118,10 @@ class HighScoreWindow:
 		if not self._cfg:
 			self._logger.error(f"[HIGHSCORE] Failed to load configuration file {cfgPath}")
 			return
+
+		if "lang" in self._cfg:
+			if self._cfg["lang"] in strings:
+				self._lang = self._cfg["lang"]
 
 		if "loglevel" in self._cfg:
 			# ToDo
@@ -305,23 +313,23 @@ class HighScoreWindow:
 					self._current['name'] = values['txtName']
 					self._current['dtstart'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 					self._state = 1
-					self._windowMain['btnStartStop'].update("Stop")
+					self._windowMain['btnStartStop'].update(strings[self._lang]['stop'])
 					self._windowMain['txtName'].update(disabled=True)
-					pass 
+					pass
 				elif self._state == 1:
 					self._state = 0
 					self._current['dtend'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 					self._current_to_highscore()
 					self._reset_state()
-					self._windowMain['btnStartStop'].update("Start")
+					self._windowMain['btnStartStop'].update(strings[self._lang]['start'])
 					self._windowMain['txtName'].update(disabled=False)
 
-					
+
 					pass
 			if event == "btnAbort":
 				self._state = 0
 				self._reset_state()
-				self._windowMain['btnStartStop'].update("Start")
+				self._windowMain['btnStartStop'].update(strings[self._lang]['start'])
 				self._windowMain['txtName'].update(disabled=False)
 
 
@@ -335,7 +343,6 @@ class HighScoreWindow:
 
 				# We've received an update. If speed is above threshold add to current
 				# run if one's running
-				print(f"[HIGHSCORE] Received {newItem}")
 				if self._state == 1:
 					if (newItem['velocity'] * 3.6) > self._vthreshold:
 						# Our measurement is above threshold, we use it
@@ -356,4 +363,3 @@ class HighScoreWindow:
 					self._update_stateUI()
 			except queue.Empty:
 				pass
-

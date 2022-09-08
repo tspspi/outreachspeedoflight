@@ -32,12 +32,15 @@ import io
 # Import our own modules
 from outreachspeedoflight.daq import SpeedOfLightDAQ
 from outreachspeedoflight.highscorewindow import HighScoreWindow
+from outreachspeedoflight.strings import strings
 
 class SpeedOfLightGUI:
 	def __init__(self, queueDAQtoGUI, queueGUItoDAQ, queueGUItoHIGHSCORE, defaultLoglevel = logging.DEBUG):
 		self._logger = logging.getLogger(__name__)
 		self._logger.addHandler(logging.StreamHandler())
 		self._logger.setLevel(defaultLoglevel)
+
+		self._lang = "en"
 
 		self._queueDAQtoGUI = queueDAQtoGUI
 		self._queueGUItoDAQ = queueGUItoDAQ
@@ -53,6 +56,10 @@ class SpeedOfLightGUI:
 		if "loglevel" in self._cfg:
 			# ToDo
 			pass
+
+		if "lang" in self._cfg:
+			if self._cfg["lang"] in strings:
+				self._lang = self._cfg["lang"]
 
 		if "lastsamples" in self._cfg:
 			self._lastEstimatesCount = self._cfg["lastsamples"]
@@ -110,13 +117,13 @@ class SpeedOfLightGUI:
 				sg.Column([
 					[
 						sg.Column([
-							[ sg.Text("Current speed: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
-							[ sg.Text("Measured delay: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
-							[ sg.Text("Averaged delay: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
-							[ sg.Text("Speed of light: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
-							[ sg.Text("Speed of light (avg): ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
-							[ sg.Text("Speed of light error: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
-							[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ]
+							[ sg.Text(f"{strings[self._lang]['current_speed']}: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text(f"{strings[self._lang]['measured_delay']}: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text(f"{strings[self._lang]['average_delay']}: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text(f"{strings[self._lang]['speed_of_light']}: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text(f"{strings[self._lang]['speed_of_light_avg']}: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text(f"{strings[self._lang]['speed_of_light_err']}: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text(f"{strings[self._lang]['deviation_real_speed']}: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ]
 						], vertical_alignment='t'),
 						sg.Column([
 							[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
@@ -153,7 +160,7 @@ class SpeedOfLightGUI:
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
 		self._windowMain = sg.Window(
-			"Speed of light",
+			f"{strings[self._lang]['mainguititle']}",
 			layout,
 			size=self._mainwindowsize,
 			location=(0,0),
@@ -164,16 +171,16 @@ class SpeedOfLightGUI:
 
 
 		self._figures = {
-			'rawData' : self._init_figure('canvRawData', 'Time [s]', 'Signal [V]', 'Captured data (normalized)'),
-			'rawDataDiff' : self._init_figure('canvRawDataDiff', 'Time [s]', 'Signal [V]', 'Difference between channels', legend = False),
-			'rawDataCorr' : self._init_figure('canvRawDataCorr', 'Time [s]', 'Correlation', 'Correlation function', legend = False),
-			'lastAvg' : self._init_figure('canvLastAvg', 'Measurements', 'Delay', 'Delay (averaged)', legend = False),
-			'lastEstimates' : self._init_figure('canvLastEstimates', 'Measurements', 'Delay', 'Last measurements', legend = False),
-			'speedoflight' : self._init_figure('canvSpeedOfLight', 'Measurements', 'Speed of light [m/s]', 'Single speed of light est.', legend = False),
+			'rawData' : self._init_figure('canvRawData', f"{strings[self._lang]['time']} [s]", f"{strings[self._lang]['signal']} [V]", f"{strings[self._lang]['captured_data_norm']}"),
+			'rawDataDiff' : self._init_figure('canvRawDataDiff', f"{strings[self._lang]['time']} [s]", f"{strings[self._lang]['signal']} [V]", f"{strings[self._lang]['diffchannels']}", legend = False),
+			'rawDataCorr' : self._init_figure('canvRawDataCorr', f"{strings[self._lang]['time']} [s]", f"{strings[self._lang]['correlation']}", f"{strings[self._lang]['correlation_function']}", legend = False),
+			'lastAvg' : self._init_figure('canvLastAvg', f"{strings[self._lang]['measurements']}", f"{strings[self._lang]['delay']}", f"{strings[self._lang]['delayavg']}", legend = False),
+			'lastEstimates' : self._init_figure('canvLastEstimates', f"{strings[self._lang]['measurements']}", f"{strings[self._lang]['delay']}", f"{strings[self._lang]['lastmeasurements']}", legend = False),
+			'speedoflight' : self._init_figure('canvSpeedOfLight', f"{strings[self._lang]['measurements']}", f"{strings[self._lang]['speedoflight']} [m/s]", f"{strings[self._lang]['singlespeedoflightest']}", legend = False),
 
-			'deviatePercent' : self._init_figure('canvDeviatePercent', 'Measurements', 'Deviation [%]', 'Deviation from real value', legend = False),
-			'speedoflightavg' : self._init_figure('canvSpeedOfLightAvg', 'Measurements', 'Speed of light [m/s]', 'Averaged speed of light', legend = False),
-			'chopperspeed' : self._init_figure('canvChopperSpeed', 'Measurement', 'Chopper speed [km/h]', 'Chopper speed', legend = False)
+			'deviatePercent' : self._init_figure('canvDeviatePercent', f"{strings[self._lang]['measurements']}", f"{strings[self._lang]['deviation']} [%]", f"{strings[self._lang]['deviation_from_real_value']}", legend = False),
+			'speedoflightavg' : self._init_figure('canvSpeedOfLightAvg', f"{strings[self._lang]['measurements']}", f"{strings[self._lang]['speedoflight']} [m/s]", f"{strings[self._lang]['averaged_speed_of_light']}", legend = False),
+			'chopperspeed' : self._init_figure('canvChopperSpeed', f"{strings[self._lang]['measurements']}", f"{strings[self._lang]['chopperspeed']} [km/h]", f"{strings[self._lang]['chopperspeed']}", legend = False)
 		}
 
 		self._difffit_enable = False
