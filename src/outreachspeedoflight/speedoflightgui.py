@@ -26,17 +26,22 @@ rcParams.update({'figure.autolayout': True})
 from lmfit import Model
 from lmfit.models import GaussianModel, ConstantModel
 
+from PIL import Image
+import io
+
 # Import our own modules
 from outreachspeedoflight.daq import SpeedOfLightDAQ
+from outreachspeedoflight.highscorewindow import HighScoreWindow
 
 class SpeedOfLightGUI:
-	def __init__(self, queueDAQtoGUI, queueGUItoDAQ, defaultLoglevel = logging.DEBUG):
+	def __init__(self, queueDAQtoGUI, queueGUItoDAQ, queueGUItoHIGHSCORE, defaultLoglevel = logging.DEBUG):
 		self._logger = logging.getLogger(__name__)
 		self._logger.addHandler(logging.StreamHandler())
 		self._logger.setLevel(defaultLoglevel)
 
 		self._queueDAQtoGUI = queueDAQtoGUI
 		self._queueGUItoDAQ = queueGUItoDAQ
+		self._queueGUItoHIGHSCORE = queueGUItoHIGHSCORE
 
 		self._cfg = self._readConfigurationFile()
 		if not self._cfg:
@@ -81,6 +86,11 @@ class SpeedOfLightGUI:
 		else:
 			self._mainwindowsize = (1024, 800)
 
+
+		self._fontsize = 18
+		if "textfontsize" in self._cfg:
+			self._fontsize = self._cfg["textfontsize"]
+
 		layout = [
 			[
 				sg.Column([
@@ -123,16 +133,30 @@ class SpeedOfLightGUI:
 							[ sg.Text("%", text_color="#FFB7B2", font=("Helvetica", 23)) ],
 						], vertical_alignment='t')
 					],
-					[ sg.Canvas(size=self._plotsize, key='canvDeviatePercent') ],
-					[ sg.Canvas(size=self._plotsize, key='canvSpeedOfLightAvg') ]
+					[
+						sg.Column([
+							[ sg.Canvas(size=self._plotsize, key='canvDeviatePercent') ],
+							[ sg.Canvas(size=self._plotsize, key='canvSpeedOfLightAvg') ]
+						], vertical_alignment='t'),
+						sg.Column([
+							[ sg.Canvas(size=self._plotsize, key='canvChopperSpeed') ],
+							[ sg.Image(data=self._loadResizedImage('logo01.png', (self._plotsize[0], int(self._plotsize[1]/2))), size=(self._plotsize[0], int(self._plotsize[1]/2))) ],
+							[ sg.Image(data=self._loadResizedImage('logo02.png', (self._plotsize[0], int(self._plotsize[1]/2))), size=(self._plotsize[0], int(self._plotsize[1]/2))) ]
+						], vertical_alignment='t')
+					]
 				]),
-				sg.Column([
-					[ sg.Canvas(size=self._plotsize, key='canvChopperSpeed') ]
-				], vertical_alignment='t')
 			],
 			[ sg.Button("Exit", key = "btnExit") ]
 		]
-		self._windowMain = sg.Window("Speed of light", layout, size=self._mainwindowsize, location=(0,0), finalize=True)
+		self._windowMain = sg.Window(
+			"Speed of light",
+			layout,
+			size=self._mainwindowsize,
+			location=(0,0),
+			finalize=True,
+			no_titlebar=False,
+			grab_anywhere=True
+		)
 
 
 		self._figures = {
@@ -164,6 +188,16 @@ class SpeedOfLightGUI:
 		self._smooth_movingaverage_n = 0
 		if "movingaverage" in self._cfg:
 			self._smooth_movingaverage_n = int(self._cfg['movingaverage'])
+
+	def _loadResizedImage(self, image, targetSize = None):
+		if isinstance(image, str):
+			image = Image.open(image)
+		if targetSize is not None:
+			image = image.resize(targetSize, Image.ANTIALIAS)
+
+		bio = io.BytesIO()
+		image.save(bio, format="PNG")
+		return bio.getvalue()
 
 
 	def _readConfigurationFile(self):
@@ -320,7 +354,7 @@ class SpeedOfLightGUI:
 		elif currentVelocity < 0:
 			currentVelocity = 0
 
-		if corrMaxT != 0:
+		if maxT != 0:
 			newCurrentSpeedoflightEstimate = (msg['path']['len'] / maxT) * msg['path']['n']
 			newAverageSpeedoflightEstimate = (msg['path']['len'] / currentAvgDelay) * msg['path']['n']
 			newAverageSpeedoflightEstimateErr = (msg['path']['len'] / currentStdDelay)
@@ -330,6 +364,12 @@ class SpeedOfLightGUI:
 			newAverageSpeedoflightEstimate = 0
 			newAverageSpeedoflightEstimateErr = 0
 			deviatePercent = 100
+
+		msg['maxT'] = maxT
+		msg['speedOfLightEstimate_Single'] = newCurrentSpeedoflightEstimate
+		msg['speedOfLightEstimate_Average'] = newAverageSpeedoflightEstimate
+		msg['speedOfLightEstimate_AvgDeviation'] = newAverageSpeedoflightEstimateErr
+		msg['speedOfLightDeviatePCT'] = deviatePercent
 
 		self._lastChopperSpeeds = np.roll(self._lastChopperSpeeds, +1)
 		self._lastChopperSpeeds[0] = currentVelocity
@@ -352,7 +392,10 @@ class SpeedOfLightGUI:
 		self._windowMain['txtC'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimate)))
 		self._windowMain['txtCErr'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimateErr)))
 		self._windowMain['txtDeviation'].update(str(round(deviatePercent, 3)))
-		
+
+		# Transmit information to our highscore window
+		self._queueGUItoHIGHSCORE.put(msg, block = False)
+
 		# Plot into our "raw" data frame ...
 		ax = self._figure_begindraw('rawData')
 		ax.plot(msg['t'], msg[1], label = 'Channel 1')
@@ -439,6 +482,11 @@ def mainStartup_DAQ(queueDAQtoGUI, queueGUItoDAQ):
 	daq = SpeedOfLightDAQ(queueDAQtoGUI, queueGUItoDAQ)
 	daq.run()
 
+def mainStartup_Highscore(highscoreCfgPath, queueGUItoHighscore):
+	print("Highscore running", flush=True)
+	hsw = HighScoreWindow(highscoreCfgPath, queueGUItoHighscore)
+	hsw.run()
+
 def mainStartup():
 	# Check the configuration files are present
 	guiCfgPath = os.path.join(Path.home(), ".config/speedoflight/gui.conf")
@@ -449,14 +497,24 @@ def mainStartup():
 	if not os.path.exists(daqCfgPath):
 		print(f"GUI configuration file missing at {daqCfgPath}")
 		return
+	highscoreCfgPath = os.path.join(Path.home(), ".config/speedoflight/highscore.conf")
+	if not os.path.exists(highscoreCfgPath):
+		print(f"Highscore configuration file missing at {highscoreCfgPath}")
+		return
 	
 	# multictx = mp.get_context("fork")
 	multictx = mp.get_context("spawn")
 	queueDAQtoGUI = multictx.JoinableQueue()
 	queueGUItoDAQ = multictx.JoinableQueue()
+	queueGUItoHighscore = multictx.JoinableQueue()
 
 	procDAQ = multictx.Process(target = mainStartup_DAQ, args = (queueDAQtoGUI, queueGUItoDAQ))
 	procDAQ.start()
+	procHighscore = multictx.Process(target = mainStartup_Highscore, args = (highscoreCfgPath, queueGUItoHighscore))
+	procHighscore.start()
 
-	gui = SpeedOfLightGUI(queueDAQtoGUI, queueGUItoDAQ)
+	gui = SpeedOfLightGUI(queueDAQtoGUI, queueGUItoDAQ, queueGUItoHighscore)
 	gui.runUI()
+
+if __name__ == "__main__":
+	mainStartup()

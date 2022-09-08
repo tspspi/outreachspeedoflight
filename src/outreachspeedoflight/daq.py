@@ -443,7 +443,7 @@ class SpeedOfLightDAQ:
 		except FileNotFoundError:
 			self._logger.error(f"[DAQ] Failed to open configuration file {cfgPath}")
 			return False
-		except JSONDecodeError as e:
+		except json.JSONDecodeError as e:
 			self._logger.error(f"[DAQ] Failed to read configuration file {cfgPath}: {e}")
 			return False
 
