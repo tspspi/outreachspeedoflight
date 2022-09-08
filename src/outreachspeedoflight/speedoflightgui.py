@@ -91,6 +91,10 @@ class SpeedOfLightGUI:
 		if "textfontsize" in self._cfg:
 			self._fontsize = self._cfg["textfontsize"]
 
+		this_dir, this_filename = os.path.split(__file__)
+		logo1 = os.path.join(this_dir, "logo01.png")
+		logo2 = os.path.join(this_dir, "logo02.png")
+
 		layout = [
 			[
 				sg.Column([
@@ -140,8 +144,8 @@ class SpeedOfLightGUI:
 						], vertical_alignment='t'),
 						sg.Column([
 							[ sg.Canvas(size=self._plotsize, key='canvChopperSpeed') ],
-							[ sg.Image(data=self._loadResizedImage('logo01.png', (self._plotsize[0], int(self._plotsize[1]/2))), size=(self._plotsize[0], int(self._plotsize[1]/2))) ],
-							[ sg.Image(data=self._loadResizedImage('logo02.png', (self._plotsize[0], int(self._plotsize[1]/2))), size=(self._plotsize[0], int(self._plotsize[1]/2))) ]
+							[ sg.Image(data=self._loadResizedImage(logo1, (self._plotsize[0], int(self._plotsize[1]/2))), size=(self._plotsize[0], int(self._plotsize[1]/2))) ],
+							[ sg.Image(data=self._loadResizedImage(logo2, (self._plotsize[0], int(self._plotsize[1]/2))), size=(self._plotsize[0], int(self._plotsize[1]/2))) ]
 						], vertical_alignment='t')
 					]
 				]),
