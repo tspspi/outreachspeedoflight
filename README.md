@@ -167,3 +167,20 @@ In addition one can directly configure some layout parameters:
 
 Note that invalid setting of those parameters might clip some graphs or cause
 some strange behavior of the user interface.
+
+## highscore.conf
+
+```
+{
+  "loglevel" : "debug",
+  "highscorefile" : "/tmp/highscore.dat",
+  "mainwindowsize" : {
+    "x" : 1920,
+    "y" : 1500
+  },
+  "tablesize" : {
+    "x" : 1350,
+    "y" : 250
+  }
+}
+```
