@@ -106,31 +106,31 @@ class SpeedOfLightGUI:
 				sg.Column([
 					[
 						sg.Column([
-							[ sg.Text("Current speed: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("Measured delay: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("Averaged delay: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("Speed of light: ", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("Speed of light (avg): ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
-							[ sg.Text("Speed of light error: ", text_color="#FFB7B2", font=("Helvetica", 23)) ],
-							[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2", font=("Helvetica", 23)) ]
+							[ sg.Text("Current speed: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("Measured delay: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("Averaged delay: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("Speed of light: ", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("Speed of light (avg): ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("Speed of light error: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("Deviation from real speed: ", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ]
 						], vertical_alignment='t'),
 						sg.Column([
-							[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtAvgDelay", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtCurC", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtC", text_color="#FFB7B2", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2", font=("Helvetica", 23)) ],
-							[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2", font=("Helvetica", 23)) ]
+							[ sg.Text("000000", key="txtCurV", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("000000", key="txtCurDelay", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("000000", key="txtAvgDelay", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("000000", key="txtCurC", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("000000", key="txtC", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("000000", key="txtCErr", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("000000", key="txtDeviation", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ]
 						], vertical_alignment='t'),
 						sg.Column([
-							[ sg.Text("km/h", text_color="#E2F0CB", font=("Helvetica", 23))  ],
-							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", 23))  ],
-							[ sg.Text("m/s", text_color="#E2F0CB", font=("Helvetica", 23)) ],
-							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", 23)) ],
-							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", 23)) ],
-							[ sg.Text("%", text_color="#FFB7B2", font=("Helvetica", 23)) ],
+							[ sg.Text("km/h", text_color="#E2F0CB", font=("Helvetica", self._fontsize))  ],
+							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("s", text_color="#E2F0CB", font=("Helvetica", self._fontsize))  ],
+							[ sg.Text("m/s", text_color="#E2F0CB", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("m/s", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
+							[ sg.Text("%", text_color="#FFB7B2", font=("Helvetica", self._fontsize)) ],
 						], vertical_alignment='t')
 					],
 					[
