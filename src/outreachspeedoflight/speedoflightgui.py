@@ -399,7 +399,7 @@ class SpeedOfLightGUI:
 		self._windowMain['txtCurDelay'].update("{:0.3e}".format(maxT))
 		self._windowMain['txtAvgDelay'].update("{:0.3e}".format(currentAvgDelay))
 		# self._windowMain['txtErrDelay'].update("{:0.3e}".format(currentStdDelay))
-		self._windowMain['txtCurC'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimate)))
+		self._windowMain['txtCurC'].update("{:0.3e}".format(abs(newCurrentSpeedoflightEstimate)))
 		self._windowMain['txtC'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimate)))
 		self._windowMain['txtCErr'].update("{:0.3e}".format(abs(newAverageSpeedoflightEstimateErr)))
 		self._windowMain['txtDeviation'].update(str(round(deviatePercent, 3)))
