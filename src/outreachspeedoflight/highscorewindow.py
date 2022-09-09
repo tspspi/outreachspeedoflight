@@ -347,7 +347,8 @@ class HighScoreWindow:
 					if (newItem['velocity'] * 3.6) > self._vthreshold:
 						# Our measurement is above threshold, we use it
 						if (self._current['vmax'] is None) or (newItem['velocity'] > self._current['vmax']):
-							self._current['vmax'] = newItem['velocity']
+							if newItem['velocity'] < 1e5:
+								self._current['vmax'] = newItem['velocity']
 						self._current['measurements_v'].append(newItem['velocity'])
 
 						# Check if our measurement is closer to the speed of ligth than bevore
