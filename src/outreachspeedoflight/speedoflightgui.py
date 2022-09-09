@@ -383,7 +383,7 @@ class SpeedOfLightGUI:
 		msg['speedOfLightDeviatePCT'] = deviatePercent
 
 		self._lastChopperSpeeds = np.roll(self._lastChopperSpeeds, +1)
-		self._lastChopperSpeeds[0] = currentVelocity
+		self._lastChopperSpeeds[0] = currentVelocity * 3.6
 
 		# Update deviation and speed of light estimates
 		self._lastEstimatesC = np.roll(self._lastEstimatesC, +1)
