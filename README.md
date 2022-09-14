@@ -1,6 +1,15 @@
 # Outreach project utility: Speed of light
 
-_Work in progress_
+* [Experimental setup](#experimental-setup)
+* [Example screenshots](#example-screenshots)
+   * [Running the embedded DAQ simulation](#running-the-embedded-daq-simulation)
+   * [Example run in the lab](#example-run-in-the-lab)
+* [Configuration files](#configuration-files)
+   * [daq.conf](#daqconf)
+   * [gui.conf](#guiconf)
+   * [highscore.conf](#highscoreconf)
+* [Exhibitions and Events](#exhibitions-and-events)
+   * Wiener Forschungsfest 2022 (9. - 11. September 2022)
 
 This is the frontend to the _speed of light_ outreach project. This project
 has been developed to measure the speed of light similar to the idea
@@ -72,21 +81,21 @@ Example configuration:
 		"trigch" : 1,
 		"triglvl" : 0.5,
 		"ch1" : {
-			"offset" : 0,
+			"offset" : -1.48,
 			"scale" : 0.5
 		},
 		"ch2" : {
-			"offset" : 0,
-			"scale" : 0.1
+			"offset" : -0.920,
+			"scale" : 0.5
 		},
-		"maxqueryrate" : 2
+		"maxqueryrate" : 0.5
 	},
 	"chopper" : {
 		"diameter" : 68e-2
 	},
 	"path" : {
-		"length" : 100,
-		"n" : 1.4
+		"length" : 144,
+		"n" : 1.0
 	},
 	"loglevel" : "debug",
 	"mode" : "continuous"
@@ -137,6 +146,32 @@ parameter:
 
 ## gui.conf
 
+Example configuration:
+
+```
+{
+	"lang" : "de",
+	"loglevel" : "debug",
+	"lastsamples" : 24,
+	"averagecount" : 4,
+	"plotsize" : {
+		"x" : 550,
+		"y" : 430
+	},
+	"mainwindowsize" : {
+		"x" : 2560,
+		"y" : 1500
+	},
+	"difffit" : {
+		"enable" : "true",
+		"primary" : "false",
+		"dump" : "true"
+	},
+	"movingaverage" : 48,
+	"textfontsize" : 23
+}
+```
+
 The user interface can be configured using ```gui.conf```. This allows one to configure
 some analysis parameters:
 
@@ -158,6 +193,8 @@ some analysis parameters:
   value larger than 0 (or to 0 to disable the feature). It applies a moving average
   filter of the specified number of samples - and thus applies a low pass filter
   to the signal.
+* ```textfontsize``` allows one to tune the size of text fields on the user interface to
+  match the display size
 
 In addition one can directly configure some layout parameters:
 
@@ -170,17 +207,50 @@ some strange behavior of the user interface.
 
 ## highscore.conf
 
+The highscore window can be configured using the ```highscore.conf``` configuration file.
+
+Example configuration:
+
 ```
 {
-  "loglevel" : "debug",
-  "highscorefile" : "/tmp/highscore.dat",
-  "mainwindowsize" : {
-    "x" : 1920,
-    "y" : 1500
-  },
-  "tablesize" : {
-    "x" : 1350,
-    "y" : 250
-  }
+	"loglevel" : "debug",
+	"highscorefile" : "/tmp/highscore.dat",
+	"mainwindowsize" : {
+		"x" : 1920,
+		"y" : 1500
+	},
+	"tablesize" : {
+		"x" : 1350,
+		"y" : 250
+	},
+	"lang" : "de"
 }
 ```
+
+# Exhibitions and Events
+
+## Wiener Forschungsfest 2022 (9. - 11. September 2022)
+
+![Stand layout used on Wiener Forschungsfest](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/standlayout_fofe2022.jpg)
+
+The [Wiener Forschungfest 2022](https://wirtschaftsagentur.at/forschungsfest/) that had
+been organized by the [Wirtschaftsagentur Wien](https://wirtschaftsagentur.at/) has been
+the first time our setup has been displayed. The event took place in
+Wiener Rathaus from 9. to 11. September 2022 and targeted mainly children at an
+age of 8 years or older and should focus on participation (thus the idea to use
+a bike as chopper) as well as showing possible carreer options in various areas of
+science. The beamline was 144m long (72 meters from one side of the city hall to
+the other) and passed over the heads of the people. Alignment and stability
+has been a little bit of a challenge due to instabilities of wooden floor but
+the setup turned out to be pretty accurate (at sub percent levels).
+
+![Beamline](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/beamline1_fofe2022.jpg)
+
+![Beamline](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/beamline2_fofe2022.jpg)
+
+The telescope setup had been pretty simple - fiber coupler, non polarizing 50:50
+beamsplitter cube, some mirrors to allow beam walking and alignment, one telescope
+lens assembly and one focus lens.
+
+![Telescope setup](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/telescope_fofe2022.jpg)
+
