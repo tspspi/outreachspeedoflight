@@ -9,7 +9,7 @@
    * [gui.conf](#guiconf)
    * [highscore.conf](#highscoreconf)
 * [Exhibitions and Events](#exhibitions-and-events)
-   * Wiener Forschungsfest 2022 (9. - 11. September 2022)
+   * [Wiener Forschungsfest 2022 (9. - 11. September 2022)](#wiener-forschungsfest-2022-9---11-september-2022)
 
 This is the frontend to the _speed of light_ outreach project. This project
 has been developed to measure the speed of light similar to the idea
