@@ -48,6 +48,27 @@ The experimental setup consists of two basic parts:
 
 ![Beam splitter and photodiode assembly](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/assembly_diodeandcoupling.png)
 
+## Setup
+
+Installation can be done via the ```PyPi``` package:
+
+```
+pip install outreachspeedoflight-tspspi
+```
+
+This also installs the ```outreachspeedoflightgui``` script / executable that
+can then directly be executed using
+
+```
+outreachspeedoflightgui
+```
+
+To upgrade an older installation one can also directly use ```pip```:
+
+```
+pip install --upgrade outreachspeedoflight-tspspi
+```
+
 # Example screenshots
 
 ## Running the embedded DAQ simulation
@@ -253,4 +274,3 @@ beamsplitter cube, some mirrors to allow beam walking and alignment, one telesco
 lens assembly and one focus lens.
 
 ![Telescope setup](https://raw.githubusercontent.com/tspspi/outreachspeedoflight/master/doc/telescope_fofe2022.jpg)
-
