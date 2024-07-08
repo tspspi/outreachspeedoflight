@@ -1,6 +1,6 @@
 from tkinter import *
 import tkinter as Tk
-import PySimpleGUI as sg
+import FreeSimpleGUI as sg
 sg.change_look_and_feel('DarkAmber')
 
 import numpy as np
